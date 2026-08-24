@@ -1,0 +1,126 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "arrstack",
+        "description": "Welchen Dienst hinzufügen? Jeder Dienst steht für sich — richte nur die ein, die du betreibst.",
+        "menu_options": {
+          "sonarr": "Sonarr",
+          "radarr": "Radarr",
+          "sabnzbd": "SABnzbd",
+          "seerr": "Jellyseerr/Seerr"
+        }
+      },
+      "sonarr": {
+        "title": "Sonarr",
+        "description": "Adresse und API-Schlüssel deiner Sonarr-Instanz. Den Schlüssel findest du unter Einstellungen → Allgemein.",
+        "data": {
+          "url": "Adresse",
+          "api_key": "API-Schlüssel",
+          "verify_ssl": "TLS-Zertifikat prüfen",
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        }
+      },
+      "radarr": {
+        "title": "Radarr",
+        "description": "Adresse und API-Schlüssel deiner Radarr-Instanz. Den Schlüssel findest du unter Einstellungen → Allgemein.",
+        "data": {
+          "url": "Adresse",
+          "api_key": "API-Schlüssel",
+          "verify_ssl": "TLS-Zertifikat prüfen",
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        }
+      },
+      "sabnzbd": {
+        "title": "SABnzbd",
+        "description": "Adresse und API-Schlüssel von SABnzbd. Den Schlüssel findest du unter Konfiguration → Allgemein → API-Schlüssel.",
+        "data": {
+          "url": "Adresse",
+          "api_key": "API-Schlüssel",
+          "verify_ssl": "TLS-Zertifikat prüfen",
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        }
+      },
+      "seerr": {
+        "title": "Jellyseerr/Seerr",
+        "description": "Adresse und API-Schlüssel von Jellyseerr. Den Schlüssel findest du unter Einstellungen → Allgemein → API-Schlüssel. Overseerr wird nicht unterstützt.",
+        "data": {
+          "url": "Adresse",
+          "api_key": "API-Schlüssel",
+          "verify_ssl": "TLS-Zertifikat prüfen",
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Neuer API-Schlüssel",
+        "description": "{title} hat den gespeicherten API-Schlüssel abgelehnt. Bitte einen neuen eingeben.",
+        "data": {
+          "api_key": "API-Schlüssel"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Der Dienst war unter dieser Adresse nicht erreichbar.",
+      "invalid_auth": "Der API-Schlüssel wurde abgelehnt (401/403).",
+      "unexpected_response": "Die Antwort passt nicht zu diesem Dienst — stimmt die Adresse?"
+    },
+    "abort": {
+      "already_configured": "Diese Adresse ist für diesen Dienst bereits eingerichtet.",
+      "reauth_successful": "Der neue API-Schlüssel funktioniert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "arrstack",
+        "description": "Einstellungen für {title}. Schlüsselfeld leer lassen = bisherigen behalten.",
+        "data": {
+          "api_key": "API-Schlüssel (leer = bisherigen behalten)",
+          "verify_ssl": "TLS-Zertifikat prüfen",
+          "scan_interval": "Abfrageintervall (Sekunden)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "queue": { "name": "Warteschlange" },
+      "downloading": { "name": "Lädt gerade" },
+      "import_problems": { "name": "Importprobleme" },
+      "wanted": { "name": "Fehlend" },
+      "diskspace_free": { "name": "Freier Speicher" },
+      "version": { "name": "Version" },
+      "series": { "name": "Serien" },
+      "movies": { "name": "Filme" },
+      "speed": { "name": "Tempo" },
+      "sizeleft": { "name": "Rest" },
+      "queue_count": { "name": "Warteschlange" },
+      "status": { "name": "Status" },
+      "requests_pending": { "name": "Anfragen offen" },
+      "requests_approved": { "name": "Anfragen freigegeben" },
+      "requests_declined": { "name": "Anfragen abgelehnt" },
+      "requests_processing": { "name": "Anfragen in Arbeit" },
+      "requests_available": { "name": "Anfragen verfügbar" },
+      "requests_failed": { "name": "Anfragen fehlgeschlagen" },
+      "requests_completed": { "name": "Anfragen erledigt" },
+      "requests_total": { "name": "Anfragen gesamt" }
+    },
+    "binary_sensor": {
+      "import_problem": { "name": "Importproblem" },
+      "health": { "name": "Health" },
+      "offline": { "name": "Nicht erreichbar" },
+      "warnings": { "name": "Warnungen" },
+      "paused": { "name": "Pausiert" }
+    },
+    "button": {
+      "rescan": { "name": "Bibliothek neu einlesen" },
+      "refresh_downloads": { "name": "Downloads neu prüfen" },
+      "cleanup_queue": { "name": "Warteschlange aufräumen" },
+      "pause": { "name": "Anhalten" },
+      "resume": { "name": "Fortsetzen" }
+    },
+    "number": {
+      "speedlimit": { "name": "Tempolimit" }
+    }
+  }
+}

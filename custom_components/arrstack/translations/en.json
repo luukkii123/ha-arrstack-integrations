@@ -1,0 +1,126 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "arrstack",
+        "description": "Pick the service to add. Every service is independent — add only the ones you run.",
+        "menu_options": {
+          "sonarr": "Sonarr",
+          "radarr": "Radarr",
+          "sabnzbd": "SABnzbd",
+          "seerr": "Jellyseerr/Seerr"
+        }
+      },
+      "sonarr": {
+        "title": "Sonarr",
+        "description": "Address and API key of your Sonarr instance. The key is in Settings → General.",
+        "data": {
+          "url": "Address",
+          "api_key": "API key",
+          "verify_ssl": "Verify the TLS certificate",
+          "scan_interval": "Polling interval (seconds)"
+        }
+      },
+      "radarr": {
+        "title": "Radarr",
+        "description": "Address and API key of your Radarr instance. The key is in Settings → General.",
+        "data": {
+          "url": "Address",
+          "api_key": "API key",
+          "verify_ssl": "Verify the TLS certificate",
+          "scan_interval": "Polling interval (seconds)"
+        }
+      },
+      "sabnzbd": {
+        "title": "SABnzbd",
+        "description": "Address and API key of SABnzbd. The key is in Config → General → API Key.",
+        "data": {
+          "url": "Address",
+          "api_key": "API key",
+          "verify_ssl": "Verify the TLS certificate",
+          "scan_interval": "Polling interval (seconds)"
+        }
+      },
+      "seerr": {
+        "title": "Jellyseerr/Seerr",
+        "description": "Address and API key of Jellyseerr. The key is in Settings → General → API Key. Overseerr is not supported.",
+        "data": {
+          "url": "Address",
+          "api_key": "API key",
+          "verify_ssl": "Verify the TLS certificate",
+          "scan_interval": "Polling interval (seconds)"
+        }
+      },
+      "reauth_confirm": {
+        "title": "New API key",
+        "description": "{title} rejected the stored API key. Enter a new one.",
+        "data": {
+          "api_key": "API key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "The service could not be reached at that address.",
+      "invalid_auth": "The API key was rejected (401/403).",
+      "unexpected_response": "The answer did not look like this service — is the address right?"
+    },
+    "abort": {
+      "already_configured": "That address is already set up for this service.",
+      "reauth_successful": "The new API key works."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "arrstack",
+        "description": "Settings for {title}. Leave the API key blank to keep the current one.",
+        "data": {
+          "api_key": "API key (blank = keep current)",
+          "verify_ssl": "Verify the TLS certificate",
+          "scan_interval": "Polling interval (seconds)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "queue": { "name": "Queue" },
+      "downloading": { "name": "Downloading" },
+      "import_problems": { "name": "Import problems" },
+      "wanted": { "name": "Wanted" },
+      "diskspace_free": { "name": "Free disk space" },
+      "version": { "name": "Version" },
+      "series": { "name": "Series" },
+      "movies": { "name": "Movies" },
+      "speed": { "name": "Speed" },
+      "sizeleft": { "name": "Remaining" },
+      "queue_count": { "name": "Queue" },
+      "status": { "name": "Status" },
+      "requests_pending": { "name": "Requests pending" },
+      "requests_approved": { "name": "Requests approved" },
+      "requests_declined": { "name": "Requests declined" },
+      "requests_processing": { "name": "Requests processing" },
+      "requests_available": { "name": "Requests available" },
+      "requests_failed": { "name": "Requests failed" },
+      "requests_completed": { "name": "Requests completed" },
+      "requests_total": { "name": "Requests total" }
+    },
+    "binary_sensor": {
+      "import_problem": { "name": "Import problem" },
+      "health": { "name": "Health" },
+      "offline": { "name": "Offline" },
+      "warnings": { "name": "Warnings" },
+      "paused": { "name": "Paused" }
+    },
+    "button": {
+      "rescan": { "name": "Rescan library" },
+      "refresh_downloads": { "name": "Refresh downloads" },
+      "cleanup_queue": { "name": "Clean up queue" },
+      "pause": { "name": "Pause" },
+      "resume": { "name": "Resume" }
+    },
+    "number": {
+      "speedlimit": { "name": "Speed limit" }
+    }
+  }
+}
