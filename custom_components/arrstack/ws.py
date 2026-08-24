@@ -32,6 +32,7 @@ from .const import (
     ERR_NOT_FOUND,
     ERR_UNSUPPORTED,
     RECENT_PAGE_SIZE,
+    SERVICE_BRAND,
     SERVICE_SABNZBD,
     SERVICE_SEERR,
     WS_HISTORY,
@@ -183,6 +184,7 @@ def ws_instances(
                     "entry_id": entry.entry_id,
                     "title": entry.title,
                     "service": entry.data[CONF_SERVICE],
+                    "brand": SERVICE_BRAND.get(entry.data[CONF_SERVICE]),
                     "url": entry.data.get(CONF_URL),
                 }
                 for entry in _loaded_entries(hass)
@@ -213,6 +215,7 @@ async def ws_queue(
         msg["id"],
         {
             "service": runtime.service,
+            "brand": SERVICE_BRAND.get(runtime.service),
             "items": data.get("queue") or [],
             "total": data.get("queue_total", data.get("queue_count")),
             "paused": data.get("paused"),
@@ -233,7 +236,12 @@ async def ws_recent(
     runtime = _resolve(hass, msg, ARR_SERVICES)
     data = runtime.coordinator.data or {}
     connection.send_result(
-        msg["id"], {"service": runtime.service, "items": data.get("recent") or []}
+        msg["id"],
+        {
+            "service": runtime.service,
+            "brand": SERVICE_BRAND.get(runtime.service),
+            "items": data.get("recent") or [],
+        },
     )
 
 
@@ -293,6 +301,7 @@ async def ws_import_problems(
         msg["id"],
         {
             "service": runtime.service,
+            "brand": SERVICE_BRAND.get(runtime.service),
             "items": data.get("import_problems") or [],
         },
     )

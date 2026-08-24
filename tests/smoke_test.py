@@ -395,6 +395,46 @@ async def main() -> None:
         f"{disks['free']} von {disks['total']}",
     )
 
+    # --- Zeichen und Marken -----------------------------------------------
+    # Ein Tippfehler in einem Schlüssel bliebe sonst stumm: Die Entität
+    # bekäme einfach kein Zeichen, und niemand merkte es.
+    from arrstack.binary_sensor import descriptions_for as binary_descriptions
+    from arrstack.button import descriptions_for as button_descriptions
+    from arrstack.const import (
+        ENTITY_ICONS,
+        SERVICE_BRAND,
+        SERVICE_FALLBACK_ICON,
+        SERVICE_PRIMARY_ENTITY,
+        SERVICES,
+    )
+    from arrstack.sensor import descriptions_for as sensor_descriptions
+
+    all_keys: set[str] = {"speedlimit"}  # number.py hat genau eine Entität
+    for service in SERVICES:
+        for source in (sensor_descriptions, binary_descriptions, button_descriptions):
+            all_keys.update(item.key for item in source(service))
+
+    unknown = sorted(set(ENTITY_ICONS) - all_keys)
+    check("jedes Zeichen gehört zu einer Entität", not unknown, str(unknown))
+
+    for service in SERVICES:
+        primary = SERVICE_PRIMARY_ENTITY[service]
+        keys = {item.key for item in sensor_descriptions(service)}
+        check(
+            f"Hauptentität von {service} existiert",
+            primary in keys,
+            primary,
+        )
+
+    check(
+        "Seerr trägt bewusst keine Marke (es gibt dort kein Zeichen)",
+        SERVICE_BRAND["seerr"] is None and "seerr" in SERVICE_FALLBACK_ICON,
+    )
+    check(
+        "die drei übrigen Dienste tragen eine Marke",
+        all(SERVICE_BRAND[s] for s in ("sonarr", "radarr", "sabnzbd")),
+    )
+
     check("Seerr-Enum 6 = blocklisted", media_status_name(6) == "blocklisted")
     check("Seerr-Enum 7 = deleted", media_status_name(7) == "deleted")
     check("Seerr-Enum unbekannt bleibt unknown", media_status_name(None) == "unknown")

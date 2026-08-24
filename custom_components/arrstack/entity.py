@@ -14,7 +14,16 @@ from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_URL, DOMAIN, SERVICE_LABELS
+from .const import (
+    BRAND_ICON_URL,
+    CONF_URL,
+    DOMAIN,
+    ENTITY_ICONS,
+    SERVICE_BRAND,
+    SERVICE_FALLBACK_ICON,
+    SERVICE_LABELS,
+    SERVICE_PRIMARY_ENTITY,
+)
 
 
 class ArrstackEntity(CoordinatorEntity):
@@ -30,6 +39,24 @@ class ArrstackEntity(CoordinatorEntity):
         service = coordinator.service
         self._attr_unique_id = f"{entry.entry_id}_{description.key}"
         self._attr_translation_key = description.translation_key or description.key
+
+        # Ein festes Zeichen nur, wo keine Geräteklasse eines liefert —
+        # sonst verlöre man die Automatik von Home Assistant (etwa den
+        # Füllstand beim Speicherplatz).
+        if getattr(description, "device_class", None) is None:
+            self._attr_icon = ENTITY_ICONS.get(description.key)
+
+        # Die Hauptentität trägt das echte Logo des Dienstes. Nur so sieht man
+        # einer Liste an, welcher Eintrag Radarr ist und welcher Sonarr — das
+        # Zeichen des Config-Entry gehört der Domain und ist bei allen gleich.
+        if SERVICE_PRIMARY_ENTITY.get(service) == description.key:
+            slug = SERVICE_BRAND.get(service)
+            if slug:
+                self._attr_entity_picture = BRAND_ICON_URL.format(slug=slug)
+            elif SERVICE_FALLBACK_ICON.get(service):
+                # Ohne Markenbild wenigstens ein passendes Zeichen — sonst
+                # sähe die Hauptentität aus wie jede andere.
+                self._attr_icon = SERVICE_FALLBACK_ICON[service]
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=entry.title,

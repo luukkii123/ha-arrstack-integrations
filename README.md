@@ -68,6 +68,21 @@ und Fortsetzen; ein Regler für das Tempolimit.
 abgelehnt, in Arbeit, verfügbar, fehlgeschlagen, erledigt, gesamt) und
 Erreichbarkeit.
 
+### Woran man den Dienst erkennt
+
+Ein Eintrag zeigt in Home Assistant immer das Zeichen seiner **Domain** — also
+`arrstack` für alle vier. Damit man einer Liste trotzdem ansieht, welcher
+Eintrag Radarr ist und welcher Sonarr, trägt **die Hauptentität jedes Dienstes
+das echte Logo** (`queue` bei Sonarr/Radarr, `status` bei SABnzbd). Es wird von
+`brands.home-assistant.io` geladen — Home Assistants eigener Sammlung — und
+liegt nicht in diesem Repo; es sind fremde Marken. Alle übrigen Entitäten
+haben ein passendes MDI-Zeichen.
+
+**Für Jellyseerr gibt es dort kein Zeichen.** Die Adresse antwortet mit
+HTTP 200 und liefert ein Bild mit der Aufschrift „icon not available" —
+nachgemessen: Pixel für Pixel dasselbe wie für einen erfundenen Namen. Seerr
+bekommt deshalb `mdi:jellyfish` statt eines geborgten Logos.
+
 Die **Einzellisten** — welcher Titel gerade lädt, welcher feststeckt — sind
 bewusst keine Entitäten. Bei ein paar hundert Einträgen wären das hunderte
 Entitäten in der Datenbank. Sie kommen über WebSocket-Kommandos.
@@ -129,7 +144,7 @@ bei jedem zehnten — das sind die großen Antworten und sie ändern sich selten
 
 - `hassfest` grün.
 - Alle Module gegen Home Assistant **2026.8.3** importiert.
-- **39 Prüfungen** in `tests/smoke_test.py` gegen einen nachgebauten
+- **46 Prüfungen** in `tests/smoke_test.py` gegen einen nachgebauten
   Sonarr-/Radarr-/SABnzbd-/Seerr-Server — Zustandserkennung, Sperren des
   Auto-Imports, Versionsverzweigung (`skipRedownload` erst ab v4), SABnzbds
   Klartextfehler bei falschem Schlüssel, Seerrs Staffelpflicht. Aufruf steht

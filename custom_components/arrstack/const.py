@@ -47,6 +47,81 @@ DEFAULT_PORTS: Final = {
     SERVICE_SEERR: 5055,
 }
 
+#: Home Assistant pflegt für genau diese vier Dienste ein Markenzeichen. Von
+#: dort wird es geladen, statt es hier mitzuliefern: Es sind fremde Marken, und
+#: HA nutzt für seine eigenen Integrationen dieselbe Quelle.
+#:
+#: **Warum überhaupt:** Ein Config-Entry zeigt in Home Assistant immer das
+#: Zeichen seiner *Domain* — also `arrstack` für alle vier. Damit man einem
+#: Eintrag ansieht, ob er Radarr oder Sonarr ist, bekommt die Hauptentität
+#: jedes Dienstes das echte Logo als `entity_picture`.
+BRAND_ICON_URL: Final = "https://brands.home-assistant.io/_/{slug}/icon.png"
+
+SERVICE_BRAND: Final = {
+    SERVICE_SONARR: "sonarr",
+    SERVICE_RADARR: "radarr",
+    SERVICE_SABNZBD: "sabnzbd",
+    # **Für Jellyseerr gibt es dort kein Zeichen.** Die Adresse antwortet
+    # trotzdem mit HTTP 200 — und liefert ein Bild mit der Aufschrift „icon not
+    # available". Am 24.08.2026 nachgemessen: die Antwort für `jellyseerr` ist
+    # Pixel für Pixel dieselbe wie für einen frei erfundenen Namen. Ein
+    # Statuscode ist hier also kein Beleg. `overseerr` gäbe es, wäre aber das
+    # Zeichen des falschen Produkts (D1) — deshalb lieber keines.
+    SERVICE_SEERR: None,
+}
+
+#: Ersatzzeichen, wo es kein Markenbild gibt. MDI liefert `jellyfish` mit —
+#: neutral, aber näher an Jellyseerr als eine leere Fläche.
+SERVICE_FALLBACK_ICON: Final = {
+    SERVICE_SEERR: "mdi:jellyfish",
+}
+
+#: Welche Entität je Dienst das Logo trägt. Genau eine — an jeder Entität wäre
+#: es eine Bilderwand, und die Liste liest sich dann schlechter, nicht besser.
+SERVICE_PRIMARY_ENTITY: Final = {
+    SERVICE_SONARR: "queue",
+    SERVICE_RADARR: "queue",
+    SERVICE_SABNZBD: "status",
+    SERVICE_SEERR: "requests_total",
+}
+
+#: MDI-Zeichen je Entitätsschlüssel. Nur für Entitäten **ohne** `device_class`
+#: — sonst überschriebe das feste Zeichen die Automatik, die Home Assistant
+#: aus der Geräteklasse ableitet (etwa gefüllt/leer beim Speicherplatz).
+ENTITY_ICONS: Final = {
+    # Sonarr / Radarr
+    "queue": "mdi:tray-full",
+    "downloading": "mdi:download",
+    "import_problems": "mdi:file-alert",
+    "wanted": "mdi:magnify-scan",
+    "series": "mdi:television-classic",
+    "movies": "mdi:movie-open",
+    "version": "mdi:tag-outline",
+    "import_problem": "mdi:file-alert",
+    "health": "mdi:heart-pulse",
+    "offline": "mdi:lan-disconnect",
+    "rescan": "mdi:folder-refresh",
+    "refresh_downloads": "mdi:refresh",
+    "cleanup_queue": "mdi:broom",
+    # SABnzbd
+    "queue_count": "mdi:tray-full",
+    "status": "mdi:information-outline",
+    "warnings": "mdi:alert",
+    "paused": "mdi:pause-circle",
+    "pause": "mdi:pause",
+    "resume": "mdi:play",
+    "speedlimit": "mdi:speedometer-slow",
+    # Jellyseerr/Seerr
+    "requests_pending": "mdi:clock-outline",
+    "requests_approved": "mdi:check-circle-outline",
+    "requests_declined": "mdi:close-circle-outline",
+    "requests_processing": "mdi:progress-download",
+    "requests_available": "mdi:check-decagram",
+    "requests_failed": "mdi:alert-circle-outline",
+    "requests_completed": "mdi:check-all",
+    "requests_total": "mdi:format-list-numbered",
+}
+
 # --- Abfrage ----------------------------------------------------------------
 
 DEFAULT_SCAN_INTERVAL: Final = 60
