@@ -53,6 +53,35 @@ Allgemein*, in SABnzbd unter *Konfiguration → Allgemein*, in Jellyseerr unter
 Zugangsdaten stehen nur im Config-Flow — nichts davon liegt in einer Datei
 dieses Repositories.
 
+Jedes Feld des Dialogs trägt seinen eigenen Hilfetext (deutsch und englisch, je
+nach Spracheinstellung von Home Assistant). Was dort steht, in Kurzform:
+
+| Feld | Standard | Bedeutung |
+| --- | --- | --- |
+| Adresse | `http://localhost:<Standardport>` | Basisadresse des Dienstes mit Protokoll, Host und Port; der Vorschlag trägt bereits den Standardport |
+| API-Schlüssel | — | der Schlüssel aus den Einstellungen des Dienstes selbst; er wird einmal ausprobiert, bevor der Eintrag entsteht |
+| Zertifikat prüfen | an | prüft das TLS-Zertifikat bei https-Adressen; nur bei einem selbst signierten Zertifikat abschalten |
+| Abfrageintervall | 60 s | Sekunden zwischen zwei Abfragen des Dienstes; erlaubt 15 bis 3600 |
+
+Über **Konfigurieren** lassen sich Schlüssel, Zertifikatsprüfung und Intervall
+später ändern; ein leeres Schlüsselfeld behält den bisherigen Schlüssel.
+
+### Wenn der API-Schlüssel nicht mehr gilt
+
+Antwortet ein Dienst mit 401 oder 403 — weil der Schlüssel in Sonarr, Radarr,
+SABnzbd oder Jellyseerr neu erzeugt wurde —, startet die Integration die
+**erneute Anmeldung**: Home Assistant zeigt beim betroffenen Eintrag „Erneut
+anmelden" und öffnet ein einziges Feld für den neuen Schlüssel. Adresse und
+Dienst bleiben, wie sie sind; der neue Schlüssel wird gegen den Dienst geprüft,
+bevor er den alten ersetzt, und zugleich aus den Optionen entfernt, damit kein
+alter Schlüssel aus einem früheren „Konfigurieren" gewinnt.
+
+*English:* add this repository to HACS as a **custom repository** of category
+**Integration**, install it, restart Home Assistant, then go to Settings →
+Devices & Services → **Add integration** → *arrstack* and pick a service. Every
+field carries its own helper text. If a service later rejects its API key, Home
+Assistant asks you to sign in again and only the key has to be re-entered.
+
 ## Entitäten
 
 **Sonarr und Radarr** (je Eintrag): `queue`, `downloading`, `import_problems`,
@@ -153,6 +182,34 @@ bei jedem zehnten — das sind die großen Antworten und sie ändern sich selten
 **Was noch aussteht:** ein Lauf in einem echten Home Assistant mit echten
 Diensten. Alles oben ist gegen nachgebaute Antworten geprüft, nicht gegen
 einen laufenden Radarr.
+
+## Entfernen
+
+**Je Eintrag, nicht je Integration** — vier Dienste bedeuten vier Einträge.
+
+1. Einstellungen → Geräte & Dienste → **arrstack** → beim gewünschten Eintrag
+   ⋮ → **Löschen**. Damit endet dessen Abfrage sofort; das Gerät und alle
+   seine Entitäten verschwinden, der gespeicherte API-Schlüssel wird mit dem
+   Eintrag gelöscht.
+2. Sind alle Einträge weg: in HACS **arrstack** → ⋮ → **Entfernen**, danach
+   Home Assistant neu starten. Das löscht `custom_components/arrstack`.
+
+**Was zurückbleibt:** nichts von der Integration selbst — keine Datei
+außerhalb der Config-Entries. Was im Verlauf (Recorder) und in den
+Langzeitstatistiken der gelöschten Sensoren steht, bleibt bis zum nächsten
+Aufräumen des Recorders erhalten; wer es sofort los sein will, löscht es unter
+*Entwicklerwerkzeuge → Statistiken*. In Sonarr, Radarr, SABnzbd oder
+Jellyseerr wird **nichts** geändert: die API-Schlüssel dort bleiben gültig und
+müssen bei Bedarf dort widerrufen werden. Dashboard-Karten aus
+`ha-arrstack-cards` bleiben liegen und zeigen dann fehlende Entitäten — die
+gehören in ein eigenes HACS-Paket und werden hier nicht mitentfernt.
+
+*English:* delete each entry under Settings → Devices & Services (one per
+service; this removes its device, entities and stored API key), then remove
+*arrstack* in HACS and restart. Recorder history and long-term statistics of
+the deleted sensors remain until the recorder purges them. Nothing is changed
+inside Sonarr, Radarr, SABnzbd or Jellyseerr — revoke the API keys there
+yourself if you want to.
 
 ## Lizenz
 

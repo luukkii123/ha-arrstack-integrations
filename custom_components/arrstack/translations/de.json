@@ -17,8 +17,14 @@
         "data": {
           "url": "Adresse",
           "api_key": "API-Schlüssel",
-          "verify_ssl": "TLS-Zertifikat prüfen",
-          "scan_interval": "Abfrageintervall (Sekunden)"
+          "verify_ssl": "Zertifikat prüfen",
+          "scan_interval": "Abfrageintervall"
+        },
+        "data_description": {
+          "url": "Basisadresse des Dienstes mit Protokoll, Host und Port; der Vorschlag im Feld trägt bereits den Standardport.",
+          "api_key": "Der Schlüssel aus den Einstellungen des Dienstes selbst; er wird einmal ausprobiert, bevor der Eintrag angelegt wird.",
+          "verify_ssl": "Prüft das TLS-Zertifikat bei https-Adressen; nur bei einem selbst signierten Zertifikat abschalten, Vorgabe an.",
+          "scan_interval": "Sekunden zwischen zwei Abfragen des Dienstes; Vorgabe 60 Sekunden, erlaubt 15 bis 3600."
         }
       },
       "radarr": {
@@ -27,8 +33,14 @@
         "data": {
           "url": "Adresse",
           "api_key": "API-Schlüssel",
-          "verify_ssl": "TLS-Zertifikat prüfen",
-          "scan_interval": "Abfrageintervall (Sekunden)"
+          "verify_ssl": "Zertifikat prüfen",
+          "scan_interval": "Abfrageintervall"
+        },
+        "data_description": {
+          "url": "Basisadresse des Dienstes mit Protokoll, Host und Port; der Vorschlag im Feld trägt bereits den Standardport.",
+          "api_key": "Der Schlüssel aus den Einstellungen des Dienstes selbst; er wird einmal ausprobiert, bevor der Eintrag angelegt wird.",
+          "verify_ssl": "Prüft das TLS-Zertifikat bei https-Adressen; nur bei einem selbst signierten Zertifikat abschalten, Vorgabe an.",
+          "scan_interval": "Sekunden zwischen zwei Abfragen des Dienstes; Vorgabe 60 Sekunden, erlaubt 15 bis 3600."
         }
       },
       "sabnzbd": {
@@ -37,8 +49,14 @@
         "data": {
           "url": "Adresse",
           "api_key": "API-Schlüssel",
-          "verify_ssl": "TLS-Zertifikat prüfen",
-          "scan_interval": "Abfrageintervall (Sekunden)"
+          "verify_ssl": "Zertifikat prüfen",
+          "scan_interval": "Abfrageintervall"
+        },
+        "data_description": {
+          "url": "Basisadresse des Dienstes mit Protokoll, Host und Port; der Vorschlag im Feld trägt bereits den Standardport.",
+          "api_key": "Der Schlüssel aus den Einstellungen des Dienstes selbst; er wird einmal ausprobiert, bevor der Eintrag angelegt wird.",
+          "verify_ssl": "Prüft das TLS-Zertifikat bei https-Adressen; nur bei einem selbst signierten Zertifikat abschalten, Vorgabe an.",
+          "scan_interval": "Sekunden zwischen zwei Abfragen des Dienstes; Vorgabe 60 Sekunden, erlaubt 15 bis 3600."
         }
       },
       "seerr": {
@@ -47,8 +65,14 @@
         "data": {
           "url": "Adresse",
           "api_key": "API-Schlüssel",
-          "verify_ssl": "TLS-Zertifikat prüfen",
-          "scan_interval": "Abfrageintervall (Sekunden)"
+          "verify_ssl": "Zertifikat prüfen",
+          "scan_interval": "Abfrageintervall"
+        },
+        "data_description": {
+          "url": "Basisadresse des Dienstes mit Protokoll, Host und Port; der Vorschlag im Feld trägt bereits den Standardport.",
+          "api_key": "Der Schlüssel aus den Einstellungen des Dienstes selbst; er wird einmal ausprobiert, bevor der Eintrag angelegt wird.",
+          "verify_ssl": "Prüft das TLS-Zertifikat bei https-Adressen; nur bei einem selbst signierten Zertifikat abschalten, Vorgabe an.",
+          "scan_interval": "Sekunden zwischen zwei Abfragen des Dienstes; Vorgabe 60 Sekunden, erlaubt 15 bis 3600."
         }
       },
       "reauth_confirm": {
@@ -56,6 +80,9 @@
         "description": "{title} hat den gespeicherten API-Schlüssel abgelehnt. Bitte einen neuen eingeben.",
         "data": {
           "api_key": "API-Schlüssel"
+        },
+        "data_description": {
+          "api_key": "Der neue Schlüssel aus den Einstellungen des Dienstes selbst; er wird einmal ausprobiert, bevor er den gespeicherten ersetzt."
         }
       }
     },
@@ -75,52 +102,119 @@
         "title": "arrstack",
         "description": "Einstellungen für {title}. Schlüsselfeld leer lassen = bisherigen behalten.",
         "data": {
-          "api_key": "API-Schlüssel (leer = bisherigen behalten)",
-          "verify_ssl": "TLS-Zertifikat prüfen",
-          "scan_interval": "Abfrageintervall (Sekunden)"
+          "api_key": "Neuer API-Schlüssel",
+          "verify_ssl": "Zertifikat prüfen",
+          "scan_interval": "Abfrageintervall"
+        },
+        "data_description": {
+          "api_key": "Ersetzt den gespeicherten Schlüssel ab sofort; leer lassen behält den bisherigen.",
+          "verify_ssl": "Prüft das TLS-Zertifikat bei https-Adressen; nur bei einem selbst signierten Zertifikat abschalten, Vorgabe an.",
+          "scan_interval": "Sekunden zwischen zwei Abfragen des Dienstes; Vorgabe 60 Sekunden, erlaubt 15 bis 3600."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "queue": { "name": "Warteschlange" },
-      "downloading": { "name": "Lädt gerade" },
-      "import_problems": { "name": "Importprobleme" },
-      "wanted": { "name": "Fehlend" },
-      "diskspace_free": { "name": "Freier Speicher" },
-      "version": { "name": "Version" },
-      "series": { "name": "Serien" },
-      "movies": { "name": "Filme" },
-      "speed": { "name": "Tempo" },
-      "sizeleft": { "name": "Rest" },
-      "queue_count": { "name": "Warteschlange" },
-      "status": { "name": "Status" },
-      "requests_pending": { "name": "Anfragen offen" },
-      "requests_approved": { "name": "Anfragen freigegeben" },
-      "requests_declined": { "name": "Anfragen abgelehnt" },
-      "requests_processing": { "name": "Anfragen in Arbeit" },
-      "requests_available": { "name": "Anfragen verfügbar" },
-      "requests_failed": { "name": "Anfragen fehlgeschlagen" },
-      "requests_completed": { "name": "Anfragen erledigt" },
-      "requests_total": { "name": "Anfragen gesamt" }
+      "queue": {
+        "name": "Warteschlange"
+      },
+      "downloading": {
+        "name": "Lädt gerade"
+      },
+      "import_problems": {
+        "name": "Importprobleme"
+      },
+      "wanted": {
+        "name": "Fehlend"
+      },
+      "diskspace_free": {
+        "name": "Freier Speicher"
+      },
+      "version": {
+        "name": "Version"
+      },
+      "series": {
+        "name": "Serien"
+      },
+      "movies": {
+        "name": "Filme"
+      },
+      "speed": {
+        "name": "Tempo"
+      },
+      "sizeleft": {
+        "name": "Rest"
+      },
+      "queue_count": {
+        "name": "Warteschlange"
+      },
+      "status": {
+        "name": "Status"
+      },
+      "requests_pending": {
+        "name": "Anfragen offen"
+      },
+      "requests_approved": {
+        "name": "Anfragen freigegeben"
+      },
+      "requests_declined": {
+        "name": "Anfragen abgelehnt"
+      },
+      "requests_processing": {
+        "name": "Anfragen in Arbeit"
+      },
+      "requests_available": {
+        "name": "Anfragen verfügbar"
+      },
+      "requests_failed": {
+        "name": "Anfragen fehlgeschlagen"
+      },
+      "requests_completed": {
+        "name": "Anfragen erledigt"
+      },
+      "requests_total": {
+        "name": "Anfragen gesamt"
+      }
     },
     "binary_sensor": {
-      "import_problem": { "name": "Importproblem" },
-      "health": { "name": "Health" },
-      "offline": { "name": "Nicht erreichbar" },
-      "warnings": { "name": "Warnungen" },
-      "paused": { "name": "Pausiert" }
+      "import_problem": {
+        "name": "Importproblem"
+      },
+      "health": {
+        "name": "Health"
+      },
+      "offline": {
+        "name": "Nicht erreichbar"
+      },
+      "warnings": {
+        "name": "Warnungen"
+      },
+      "paused": {
+        "name": "Pausiert"
+      }
     },
     "button": {
-      "rescan": { "name": "Bibliothek neu einlesen" },
-      "refresh_downloads": { "name": "Downloads neu prüfen" },
-      "cleanup_queue": { "name": "Warteschlange aufräumen" },
-      "pause": { "name": "Anhalten" },
-      "resume": { "name": "Fortsetzen" }
+      "rescan": {
+        "name": "Bibliothek neu einlesen"
+      },
+      "refresh_downloads": {
+        "name": "Downloads neu prüfen"
+      },
+      "cleanup_queue": {
+        "name": "Warteschlange aufräumen"
+      },
+      "pause": {
+        "name": "Anhalten"
+      },
+      "resume": {
+        "name": "Fortsetzen"
+      }
     },
     "number": {
-      "speedlimit": { "name": "Tempolimit" }
+      "speedlimit": {
+        "name": "Tempolimit"
+      }
     }
   }
 }

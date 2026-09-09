@@ -223,8 +223,18 @@ class ArrstackConfigFlow(ConfigFlow, domain=DOMAIN):
             except ArrstackError:
                 errors["base"] = "unexpected_response"
             else:
+                # Der Schlüssel muss auch aus den Optionen verschwinden:
+                # `_setting()` lässt Optionen die Daten schlagen, ein alter
+                # Schlüssel aus „Konfigurieren" würde sonst den frischen aus
+                # der erneuten Anmeldung überstimmen.
                 return self.async_update_reload_and_abort(
-                    entry, data_updates={CONF_API_KEY: api_key}
+                    entry,
+                    data_updates={CONF_API_KEY: api_key},
+                    options={
+                        key: value
+                        for key, value in entry.options.items()
+                        if key != CONF_API_KEY
+                    },
                 )
 
         return self.async_show_form(

@@ -1,0 +1,81 @@
+# Integration Quality Scale — Stand 09.09.2026.
+# Mindestmaß laut docs/ui-regeln.md, Regel 3, ist Bronze. Hier steht der
+# ehrliche Stand jeder Bronze-Regel, nicht der gewünschte. `manifest.json`
+# führt bewusst KEINEN `quality_scale`-Schlüssel: der wäre eine Behauptung,
+# solange `config-flow-test-coverage` offen ist und die Integration noch nie
+# in einem laufenden Home Assistant gelaufen ist.
+rules:
+  action-setup:
+    status: exempt
+    comment: >-
+      Die Integration registriert keine Aktionen. Was sie auslöst — neu
+      einlesen, Warteschlange aufräumen, anhalten, fortsetzen — sind
+      `button`-Entitäten, dazu kommen WebSocket-Kommandos fürs Frontend.
+  appropriate-polling:
+    status: done
+    comment: >-
+      `DataUpdateCoordinator` je Eintrag, Vorgabe 60 s (15–3600 einstellbar).
+      Teure Abfragen laufen nur in jedem n-ten Takt (`_slow_due`), damit das
+      kurze Intervall nicht den ganzen Datensatz zieht.
+  brands: done
+  common-modules:
+    status: done
+    comment: >-
+      Coordinator in `coordinator.py`, gemeinsame Entitätsbasis
+      `ArrstackEntity` in `entity.py`, HTTP-Clients in `api.py`.
+  config-flow-test-coverage:
+    status: todo
+    comment: >-
+      `tests/smoke_test.py` prüft die Auswertungslogik ohne Home Assistant.
+      Für den Config-Flow gibt es keine pytest-Abdeckung, weil auf dem
+      Entwicklungsrechner kein Home Assistant installiert ist.
+  config-flow: done
+  dependency-transparency:
+    status: done
+    comment: >-
+      `requirements` ist leer; der HTTP-Client kommt von Home Assistant selbst.
+  docs-actions:
+    status: exempt
+    comment: Die Integration registriert keine Aktionen.
+  docs-high-level-description:
+    status: done
+    comment: README, Kopf und Abschnitt „Jeder Dienst ist optional".
+  docs-installation-instructions:
+    status: done
+    comment: README, Abschnitt „Installation".
+  docs-removal-instructions:
+    status: done
+    comment: README, Abschnitt „Entfernen".
+  entity-event-setup:
+    status: exempt
+    comment: >-
+      Die Entitäten abonnieren nichts von sich aus; sie erben von
+      `CoordinatorEntity`, die ihr Abo in `async_added_to_hass` anlegt und
+      selbst wieder abräumt.
+  entity-unique-id:
+    status: done
+    comment: "`entity.py`: `_attr_unique_id = f\"{entry.entry_id}_{description.key}\"`."
+  has-entity-name:
+    status: done
+    comment: "`entity.py`: `_attr_has_entity_name = True`."
+  runtime-data:
+    status: done
+    comment: >-
+      `entry.runtime_data` hält `ArrstackRuntime`; `hass.data` trägt nur den
+      Merker, dass die WebSocket-Kommandos schon registriert sind — die hängen
+      an keinem einzelnen Eintrag.
+  test-before-configure:
+    status: done
+    comment: >-
+      `validate_connection()` fragt den Dienst einmal an und liest seine
+      Version, bevor der Eintrag entsteht; dieselbe Prüfung läuft im
+      Reauth-Schritt, bevor der alte Schlüssel ersetzt wird.
+  test-before-setup:
+    status: done
+    comment: "`async_setup_entry` ruft `async_config_entry_first_refresh()`."
+  unique-config-entry:
+    status: done
+    comment: >-
+      `async_set_unique_id(f\"{service}:{url}\")` plus
+      `_abort_if_unique_id_configured()`. Die Adresse ist die normalisierte
+      Eingabe des Nutzers — bei einem Hostnamen also gerade nicht IP-abhängig.
