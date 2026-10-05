@@ -1,9 +1,6 @@
-# Integration Quality Scale — Stand 09.09.2026.
-# Mindestmaß laut docs/ui-regeln.md, Regel 3, ist Bronze. Hier steht der
-# ehrliche Stand jeder Bronze-Regel, nicht der gewünschte. `manifest.json`
-# führt bewusst KEINEN `quality_scale`-Schlüssel: der wäre eine Behauptung,
-# solange `config-flow-test-coverage` offen ist und die Integration noch nie
-# in einem laufenden Home Assistant gelaufen ist.
+# Integration Quality Scale — geprüft am 05.10.2026.
+# Alle aktuellen Bronze-Regeln; tests_ha dokumentiert reproduzierbare Nachweise.
+# Siehe Verwaltungsreview 2026-10-05-bronze-nachweise.md für die Grenzen.
 rules:
   action-setup:
     status: exempt
@@ -24,19 +21,25 @@ rules:
       Coordinator in `coordinator.py`, gemeinsame Entitätsbasis
       `ArrstackEntity` in `entity.py`, HTTP-Clients in `api.py`.
   config-flow-test-coverage:
-    status: todo
-    comment: >-
-      `tests/smoke_test.py` prüft die Auswertungslogik ohne Home Assistant.
-      Für den Config-Flow gibt es keine pytest-Abdeckung, weil auf dem
-      Entwicklungsrechner kein Home Assistant installiert ist.
-  config-flow: done
-  dependency-transparency:
     status: done
     comment: >-
-      `requirements` ist leer; der HTTP-Client kommt von Home Assistant selbst.
+      tests_ha/test_config_flow.py führt echte HA-Flowmanager aus. Config-,
+      Options- und vorhandene Reauth/Reconfigure-Flows einschließlich
+      Fehler-Recovery und Dubletten: 100 % Zeilen- und Zweigabdeckung,
+      --cov-branch --cov-fail-under=100, HA 2026.7.0 und 2026.9.2.
+  config-flow: done
+  dependency-transparency:
+    status: exempt
+    comment: Keine externen requirements; HTTP-Client kommt von Home Assistant.
   docs-actions:
     status: exempt
     comment: Die Integration registriert keine Aktionen.
+  docs-triggers:
+    status: exempt
+    comment: Keine eigenen Automations-Trigger bereitgestellt.
+  docs-conditions:
+    status: exempt
+    comment: Keine eigenen Automations-Bedingungen bereitgestellt.
   docs-high-level-description:
     status: done
     comment: README, Kopf und Abschnitt „Jeder Dienst ist optional".
@@ -47,11 +50,10 @@ rules:
     status: done
     comment: README, Abschnitt „Entfernen".
   entity-event-setup:
-    status: exempt
+    status: done
     comment: >-
-      Die Entitäten abonnieren nichts von sich aus; sie erben von
-      `CoordinatorEntity`, die ihr Abo in `async_added_to_hass` anlegt und
-      selbst wieder abräumt.
+      CoordinatorEntity registriert Listener in async_added_to_hass und
+      entfernt sie über async_on_remove.
   entity-unique-id:
     status: done
     comment: "`entity.py`: `_attr_unique_id = f\"{entry.entry_id}_{description.key}\"`."

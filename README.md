@@ -214,3 +214,25 @@ yourself if you want to.
 ## Lizenz
 
 MIT
+
+
+## Lokale Qualitätsprüfung – 05.10.2026
+
+HA-Bibliothekstests ohne eigenen HA-Server: Home Assistant 2026.7.0 mit
+pytest-homeassistant-custom-component 0.13.344 sowie HA 2026.9.2 mit
+0.13.365. `tests_ha/test_config_flow.py` prüft den vollständigen Config-Flow,
+Optionen und vorhandene Reauth-/Reconfigure-Schritte, Fehler-Recovery und
+Dubletten. Gemessene Zeilen- **und** Zweigabdeckung: **100 %**; der
+CI-Befehl erzwingt dies mit `--cov-branch --cov-fail-under=100`.
+Die HA-Suite umfasst 25 bestandene Tests je Matrixversion.
+
+Die bestehende isolierte API-/Logikprüfung besteht zusätzlich mit 46 Prüfungen.
+
+Die aktuelle Bronze-Checkliste mit 20 Regeln ist in `quality_scale.yaml`
+belegt beziehungsweise mit begründeten Ausnahmen geführt. Das Manifest
+beansprucht weiterhin keine Stufe, solange die Auslieferungsabnahme nicht
+vorbereitet und abgeschlossen ist.
+
+Dies sind lokale Quellcode- und Bibliotheksnachweise; sie ersetzen keine
+Live-Abnahme und behaupten weder Veröffentlichung noch HACS-Installation.
+Aufruf und Testumgebung: [`tests_ha`](tests_ha/).

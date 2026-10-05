@@ -23,3 +23,22 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
+
+  tests:
+    name: HA config flow ${{ matrix.ha }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - ha: "2026.7.0"
+            plugin: "0.13.344"
+          - ha: "2026.9.2"
+            plugin: "0.13.365"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build test environment (no HA server)
+        run: docker build --build-arg HA_VERSION=${{ matrix.ha }} --build-arg TEST_PLUGIN=${{ matrix.plugin }} -f tests_ha/Dockerfile -t integration-tests .
+      - name: Test all flows and require full branch coverage
+        run: docker run --rm --network none -v "$PWD:/repo" -w /repo integration-tests python -m pytest -c tests_ha/pytest.ini tests_ha --cov=custom_components.arrstack.config_flow --cov-branch --cov-fail-under=100 -q
+      - name: Existing logic smoke checks against isolated fixtures
+        run: docker run --rm --network none -v "$PWD:/repo:ro" -w /repo integration-tests python tests/smoke_test.py
