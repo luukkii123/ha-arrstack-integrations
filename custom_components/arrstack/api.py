@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 from typing import Any
+from urllib.parse import urlencode, quote
 
 import aiohttp
 from yarl import URL
@@ -31,6 +32,14 @@ from .const import (
 
 class ArrstackError(Exception):
     """Basisfehler aller vier Clients."""
+
+
+class ArrstackHTTPError(ArrstackError):
+    """HTTP rejection, distinct from an unreadable/uncertain response."""
+
+    def __init__(self, status: int, message: str) -> None:
+        super().__init__(message)
+        self.status = status
 
 
 class ArrstackAuthError(ArrstackError):
@@ -86,11 +95,16 @@ class _BaseClient:
     ) -> Any:
         """Eine Anfrage; Fehler werden in die drei Klassen oben übersetzt."""
         url = URL(f"{self._base}/{path.lstrip('/')}", encoded=False)
+        query = _stringify(params)
+        if query:
+            # Seerr validates the raw query: form-style + and yarl's
+            # requoting of reserved characters are rejected. Encode once.
+            url = URL(str(url) + "?" + urlencode(query, quote_via=quote, safe=""), encoded=True)
         try:
             response = await self._session.request(
                 method,
                 url,
-                params=_stringify(params),
+                params=None,
                 json=json,
                 headers=headers,
                 timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
@@ -109,7 +123,7 @@ class _BaseClient:
                 )
             if response.status >= 400:
                 body = (await response.text())[:200]
-                raise ArrstackError(f"HTTP {response.status}: {body}")
+                raise ArrstackHTTPError(response.status, f"HTTP {response.status}: {body}")
             if response.status == 204 or not response.content_length:
                 # 204 und leere Antworten kommen bei POST/DELETE regelmäßig vor.
                 text = await response.text()
@@ -198,7 +212,7 @@ class ArrClient(_BaseClient):
         """Alle von der App gesehenen Laufwerke."""
         return await self._get("diskspace") or []
 
-    async def queue(self, page_size: int = QUEUE_PAGE_SIZE) -> dict[str, Any]:
+    async def queue(self, page_size: int = QUEUE_PAGE_SIZE, page: int = 1) -> dict[str, Any]:
         """Die Queue samt Titeln.
 
         `includeUnknownSeriesItems` bzw. `includeUnknownMovieItems` ist der
@@ -206,7 +220,7 @@ class ArrClient(_BaseClient):
         es beim „heruntergeladen, aber nicht importiert" geht.
         """
         params: dict[str, Any] = {
-            "page": 1,
+            "page": page,
             "pageSize": page_size,
             "sortKey": "timeleft",
             "sortDirection": "ascending",

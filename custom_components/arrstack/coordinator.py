@@ -62,6 +62,7 @@ class ArrstackRuntime:
     service: str
     coordinator: DataUpdateCoordinator[dict[str, Any]]
     client: Any = field(repr=False)
+    imports: Any = field(default=None, repr=False)
 
 
 def _setting(entry: ConfigEntry, key: str, default: Any) -> Any:
@@ -94,8 +95,7 @@ def rejection_is_unsafe(reason: str) -> bool:
 def classify_candidates(candidates: list[dict[str, Any]]) -> dict[str, Any]:
     """Entscheidet, ob ein Ein-Klick-Import angeboten werden darf.
 
-    Angeboten wird er nur, wenn **jede** gefundene Datei zugeordnet ist und
-    **keine** Ablehnung mit einem der heiklen Gründe dabei ist. Sonst bleibt
+    Angeboten wird er nur für genau eine zugeordnete Datei ohne Ablehnung. Sonst bleibt
     es beim Anzeigen des Grundes — blind zu importieren ordnet Dateien der
     falschen Serie zu, und das wieder auseinanderzusortieren ist Handarbeit.
     """
@@ -107,14 +107,14 @@ def classify_candidates(candidates: list[dict[str, Any]]) -> dict[str, Any]:
             reason = str(reason or "").strip()
             if reason:
                 reasons.append(reason)
-            if rejection_is_unsafe(reason):
-                unsafe = True
+            # Unknown rejections are not proof of a safe import either.
+            unsafe = True
         # Ohne Zuordnung (Serie/Film fehlt) weiß die App nicht, wohin damit.
         if not candidate.get("series") and not candidate.get("movie"):
             unsafe = True
             reasons.append("Keine Serie/kein Film zugeordnet")
     return {
-        "can_auto_import": bool(candidates) and not unsafe,
+        "can_auto_import": len(candidates) == 1 and not unsafe,
         "reasons": sorted(set(reasons)),
     }
 

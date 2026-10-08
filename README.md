@@ -236,3 +236,83 @@ vorbereitet und abgeschlossen ist.
 Dies sind lokale Quellcode- und Bibliotheksnachweise; sie ersetzen keine
 Live-Abnahme und behaupten weder Veröffentlichung noch HACS-Installation.
 Aufruf und Testumgebung: [`tests_ha`](tests_ha/).
+
+## Import-Actions und kompakte Karten — 0.4.0
+
+Karten und Automationen verwenden dieselbe serverseitige Prüfung. Neue
+WebSocket-Kommandos und gleichnamige HA-Actions:
+
+| Action (`arrstack.`) / WS (`arrstack/`) | Parameter / Ergebnis |
+| --- | --- |
+| `refresh_import_queue` | `entry_id` oder `service`, optional `queue_item_id`; `{service, items}` |
+| `inspect_import` | `queue_item_id`; geprüftes Item |
+| `import_item` | `queue_item_id`, optional ausdrücklich gewählte `candidate_id`; Item mit `status` |
+| `import_ready` | alle Items prüfen; `{service, results}` |
+| `import_selected` | `queue_item_ids` als Liste; `{service, results}` je eindeutiger ID |
+
+Bei mehreren passenden Instanzen muss `entry_id` angegeben werden. Actions
+liefern mit `response_variable` strukturierte Antworten und sind auch ohne
+Antwortvariable aufrufbar. Aufrufe durch Benutzer verlangen Administratorrechte;
+Automationen ohne Benutzerkontext dürfen die Actions ausführen.
+
+Items ergänzen die Queuefelder um `queue_item_id`, `download_complete`,
+`import_state`, `candidate_count`, `candidates`, `last_checked`, `last_error`.
+Zustände sind `not_applicable`, `ready`, `no_match`, `selection_required`,
+`error`. Kandidaten enthalten stabile `candidate_id`, `valid`, Dateiname/Pfad,
+Größe, Quality, Languages, Release Group, Custom Formats und Ablehnungsgründe.
+`candidate_count` zählt nur valide Kandidaten; ungeprüfte aktive Downloads
+haben `null`, keine Kandidaten und keinen zusätzlichen Importwarnstatus.
+
+Der Download muss `completed` sein und explizit `sizeleft == 0` liefern;
+zusätzlich muss ein bestehendes Importproblem vorliegen. Keine Zuordnung wird
+anhand von Dateinamen geraten. Jede Ablehnung, falsche Download-/Serien-/Film-
+oder Episodenzuordnung sowie fehlende Ziel-IDs sperrt den Kandidaten.
+Ohne ausdrückliche Kandidatenwahl wird nur genau ein valider Kandidat importiert.
+Die Queue wird vollständig über alle Seiten gelesen und vor jedem Import
+erneut geprüft. Sammelaktionen überspringen unvollständige, leere und
+mehrdeutige Items und liefern Ergebnisse einzeln.
+
+`status: submitted` bedeutet: Der Dienst hat den Importauftrag angenommen;
+es behauptet keinen bereits abgeschlossenen Dateiimport. Der Coordinator
+wird danach aktualisiert. Gleichzeitige und wiederholte Aufträge für dieselbe
+Download-/Dateizuordnung werden innerhalb der laufenden Integration gesperrt,
+auch wenn mehrere Queuezeilen denselben Download darstellen. Bei einer
+bestätigten 4xx-Ablehnung (außer 408) bleibt ein frisch geprüfter erneuter Versuch möglich.
+Bei Verbindungsabbruch/Timeout, 5xx/408 oder unlesbarer Antwort ist der Ausgang ungewiss: Die Reservierung
+bleibt bis zum Verschwinden des Downloads aus der Queue erhalten. Nach einem
+HA-Neustart sind diese flüchtigen Reservierungen nicht mehr vorhanden; deshalb
+bei ungewissem Ausgang zuerst den Dienststatus prüfen. Der historische
+`manual_import`-Force-Schalter ist gesperrt; explizite Auswahl erfolgt über
+`import_item`, ohne die Sicherheitsprüfung zu umgehen.
+
+Automationsbeispiel (IDs aus `arrstack/instances` übernehmen):
+
+```yaml
+sequence:
+  - action: arrstack.import_ready
+    data:
+      entry_id: YOUR_CONFIG_ENTRY_ID
+    response_variable: import_result
+```
+
+Die Seerr-Suche kodiert freien Text einmal mit striktem Percent-Encoding,
+einschließlich Leerzeichen als `%20`; ein eingegebenes `%20` bleibt wörtlicher
+Text. API-Schlüssel und private Dienstadressen bleiben im Config-Entry.
+
+### Geprüft — 08.10.2026, 0.4.0
+
+Lokale HA-Bibliotheksmatrizen 2026.7.0 und 2026.9.2: jeweils 35 Tests,
+ConfigFlow-Zeilen und -Zweige 100 %. Zehn neue Tests prüfen echte HA-Service-
+und WebSocket-Registrierung, Antwortdaten, Schemas und Benutzerrechte.
+Die 46 bisherigen API-/Logikprüfungen bleiben grün. Zusätzlich prüft
+`tests/import_test.py` den tatsächlichen HTTP-Querytext für 13 Sonderzeichenfälle,
+20/50/99-Prozent-Downloads, abgeschlossenes Nichtproblem, 0/1/mehrere Kandidaten,
+explizite Auswahl, Sonarr/Radarr-Zuordnung, Fehler, frische Revalidierung,
+mehrseitige Queue, doppelte IDs/Downloadzeilen, gleichzeitige Aufrufe und
+bestätigte Ablehnung gegenüber ungewissem Verbindungsfehler. Der statische
+UI-Regelprüfer meldet 0 Verstöße.
+
+Dies sind isolierte HA-/Diensttests, keine Veröffentlichung, Installation oder
+produktive Medienänderung. Die Live-Abnahme und Karten-Browserprüfung wird
+im gemeinsamen HACS-Abnahmebericht ergänzt; native HA-Formulare wurden hier
+nicht per Tastatur/Mobile/Screenreader geprüft.

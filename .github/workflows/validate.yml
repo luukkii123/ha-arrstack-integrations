@@ -42,3 +42,6 @@ jobs:
         run: docker run --rm --network none -v "$PWD:/repo" -w /repo integration-tests python -m pytest -c tests_ha/pytest.ini tests_ha --cov=custom_components.arrstack.config_flow --cov-branch --cov-fail-under=100 -q
       - name: Existing logic smoke checks against isolated fixtures
         run: docker run --rm --network none -v "$PWD:/repo:ro" -w /repo integration-tests python tests/smoke_test.py
+
+      - name: Strict query encoding and import safety regression checks
+        run: docker run --rm --network none -v "$PWD:/repo:ro" -w /repo integration-tests python tests/import_test.py

@@ -30,6 +30,8 @@ from .coordinator import (
     build_coordinator,
 )
 from .ws import async_register_websocket_api
+from .imports import ImportManager
+from .services import async_register_import_services
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -74,7 +76,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ArrstackConfigEntry) -> 
     await coordinator.async_config_entry_first_refresh()
 
     entry.runtime_data = ArrstackRuntime(
-        service=service, coordinator=coordinator, client=client
+        service=service, coordinator=coordinator, client=client,
+        imports=ImportManager(client) if service in ARR_SERVICES else None
     )
 
     # Die WS-Kommandos hängen an keiner einzelnen Entry — sie suchen sich die
@@ -82,6 +85,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ArrstackConfigEntry) -> 
     domain_data = hass.data.setdefault(DOMAIN, {})
     if not domain_data.get(_WS_REGISTERED):
         async_register_websocket_api(hass)
+        async_register_import_services(hass)
         domain_data[_WS_REGISTERED] = True
 
     await hass.config_entries.async_forward_entry_setups(

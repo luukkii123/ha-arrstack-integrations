@@ -216,5 +216,97 @@
         "name": "Tempolimit"
       }
     }
+  },
+  "services": {
+    "refresh_import_queue": {
+      "name": "Importwarteschlange aktualisieren",
+      "description": "Warteschlange lesen und ausschließlich abgeschlossene Importprobleme prüfen.",
+      "fields": {
+        "entry_id": {
+          "name": "Instanz",
+          "description": "ID des Konfigurationseintrags; bei mehreren passenden Instanzen erforderlich."
+        },
+        "service": {
+          "name": "Dienst",
+          "description": "Sonarr oder Radarr; bei mehreren Instanzen zusätzlich die Instanz angeben."
+        },
+        "queue_item_id": {
+          "name": "Queue-Eintrag",
+          "description": "Optional nur diesen stabilen Queue-Eintrag prüfen."
+        }
+      }
+    },
+    "inspect_import": {
+      "name": "Importkandidaten prüfen",
+      "description": "Frischen Queuezustand und API-Kandidaten eines Eintrags sicher prüfen.",
+      "fields": {
+        "entry_id": {
+          "name": "Instanz",
+          "description": "Konfigurationseintrag der Sonarr-/Radarr-Instanz."
+        },
+        "service": {
+          "name": "Dienst",
+          "description": "Diensttyp; bei mehreren Instanzen zusätzlich die Instanz angeben."
+        },
+        "queue_item_id": {
+          "name": "Queue-Eintrag",
+          "description": "Stabile ID aus der Warteschlange."
+        }
+      }
+    },
+    "import_item": {
+      "name": "Eintrag importieren",
+      "description": "Erneut prüfen und genau einen validen Kandidaten importieren; aktive Downloads bleiben gesperrt.",
+      "fields": {
+        "entry_id": {
+          "name": "Instanz",
+          "description": "Konfigurationseintrag der Sonarr-/Radarr-Instanz."
+        },
+        "service": {
+          "name": "Dienst",
+          "description": "Diensttyp; bei mehreren Instanzen zusätzlich die Instanz angeben."
+        },
+        "queue_item_id": {
+          "name": "Queue-Eintrag",
+          "description": "Stabile ID aus der Warteschlange."
+        },
+        "candidate_id": {
+          "name": "Kandidat",
+          "description": "Optional ausdrücklich ausgewählte valide Kandidaten-ID aus der Prüfung; ohne ID nur genau ein Kandidat."
+        }
+      }
+    },
+    "import_ready": {
+      "name": "Bereite importieren",
+      "description": "Alle Einträge erneut prüfen; ausschließlich fertige Downloads mit genau einem validen Kandidaten importieren.",
+      "fields": {
+        "entry_id": {
+          "name": "Instanz",
+          "description": "Konfigurationseintrag der Sonarr-/Radarr-Instanz."
+        },
+        "service": {
+          "name": "Dienst",
+          "description": "Diensttyp; bei mehreren Instanzen zusätzlich die Instanz angeben."
+        }
+      }
+    },
+    "import_selected": {
+      "name": "Auswahl importieren",
+      "description": "Ausgewählte Einträge erneut prüfen und nur eindeutige fertige Kandidaten importieren; Ergebnis pro Eintrag.",
+      "fields": {
+        "entry_id": {
+          "name": "Instanz",
+          "description": "Konfigurationseintrag der Sonarr-/Radarr-Instanz."
+        },
+        "service": {
+          "name": "Dienst",
+          "description": "Diensttyp; bei mehreren Instanzen zusätzlich die Instanz angeben."
+        },
+        "queue_item_ids": {
+          "name": "Queue-Einträge",
+          "description": "Liste stabiler Queue-IDs; doppelte IDs werden nur einmal verarbeitet."
+        }
+      }
+    }
   }
 }

@@ -216,5 +216,97 @@
         "name": "Speed limit"
       }
     }
+  },
+  "services": {
+    "refresh_import_queue": {
+      "name": "Refresh import queue",
+      "description": "Inspect fresh queue state and import only completed downloads with valid authoritative API candidates. Returns structured per-item results.",
+      "fields": {
+        "entry_id": {
+          "name": "Instance",
+          "description": "Config entry ID; required when more than one instance matches."
+        },
+        "service": {
+          "name": "Service",
+          "description": "Sonarr or Radarr; provide entry_id when multiple instances match."
+        },
+        "queue_item_id": {
+          "name": "Queue item",
+          "description": "Stable item ID from the queue."
+        }
+      }
+    },
+    "inspect_import": {
+      "name": "Inspect import candidates",
+      "description": "Inspect fresh queue state and import only completed downloads with valid authoritative API candidates. Returns structured per-item results.",
+      "fields": {
+        "entry_id": {
+          "name": "Instance",
+          "description": "Config entry ID; required when more than one instance matches."
+        },
+        "service": {
+          "name": "Service",
+          "description": "Sonarr or Radarr; provide entry_id when multiple instances match."
+        },
+        "queue_item_id": {
+          "name": "Queue item",
+          "description": "Stable item ID from the queue."
+        }
+      }
+    },
+    "import_item": {
+      "name": "Import item",
+      "description": "Inspect fresh queue state and import only completed downloads with valid authoritative API candidates. Returns structured per-item results.",
+      "fields": {
+        "entry_id": {
+          "name": "Instance",
+          "description": "Config entry ID; required when more than one instance matches."
+        },
+        "service": {
+          "name": "Service",
+          "description": "Sonarr or Radarr; provide entry_id when multiple instances match."
+        },
+        "queue_item_id": {
+          "name": "Queue item",
+          "description": "Stable item ID from the queue."
+        },
+        "candidate_id": {
+          "name": "Candidate",
+          "description": "Optional explicitly selected valid candidate ID from inspection; otherwise exactly one candidate is required."
+        }
+      }
+    },
+    "import_ready": {
+      "name": "Import ready items",
+      "description": "Inspect fresh queue state and import only completed downloads with valid authoritative API candidates. Returns structured per-item results.",
+      "fields": {
+        "entry_id": {
+          "name": "Instance",
+          "description": "Config entry ID; required when more than one instance matches."
+        },
+        "service": {
+          "name": "Service",
+          "description": "Sonarr or Radarr; provide entry_id when multiple instances match."
+        }
+      }
+    },
+    "import_selected": {
+      "name": "Import selected items",
+      "description": "Inspect fresh queue state and import only completed downloads with valid authoritative API candidates. Returns structured per-item results.",
+      "fields": {
+        "entry_id": {
+          "name": "Instance",
+          "description": "Config entry ID; required when more than one instance matches."
+        },
+        "service": {
+          "name": "Service",
+          "description": "Sonarr or Radarr; provide entry_id when multiple instances match."
+        },
+        "queue_item_ids": {
+          "name": "Queue items",
+          "description": "List of stable queue item IDs; duplicates are processed once."
+        }
+      }
+    }
   }
 }

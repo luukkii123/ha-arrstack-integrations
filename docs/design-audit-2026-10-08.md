@@ -52,3 +52,62 @@ Tatsächlich: `git status`, Dateibestand mit `rg --files`, gezielte `rg -n`-/Que
 ## Ausnahmen und Folgearbeit
 
 Kein Integrationstest, keine HA-Hostprüfung und kein Schaltversuch ausgeführt. R03/R04/R05/R06/R16 bleiben für Hostdialoge ungeprüft, auch wenn Code an HA delegiert. Die historische Bronze-/Liveabnahme wird hier nicht als aktuelle Designabnahme verwendet. Weiterarbeit über HACS-Audit #139.
+
+## Backend-Nachprüfung — Todos #181/#182, Version 0.4.0
+
+Änderungen: HTTP-Query-Encoding, zentraler ImportManager, HA-Actions und
+WS-Kommandos, zweisprachige Action-Feldbeschreibungen. Keine eigene
+Browseroberfläche implementiert. Die vorhandenen Host-Formulare bleiben
+unter ihrer bisherigen Laufzeitgrenze; keine Tastatur-/Mobile-Abnahme behauptet.
+
+Tatsächlich ausgeführt am 08.10.2026:
+
+- Beide vorhandenen HA-Testimages `hacs-bronze-tests:2026.7.0` und
+  `hacs-bronze-tests:2026.9.2`: komplette `tests_ha`-Suite, je 35 bestanden;
+  ConfigFlow-Zeilen-/Zweigabdeckung 100 %.
+- Zehn neue HA-Tests in `tests_ha/test_import_actions.py`: echte
+  ServiceRegistry-/WebSocket-Aufrufe, optionale strukturierte Antworten,
+  Schemafehler und Admin-/Nichtadmin-Zugriff. Externe Dienste dabei isoliert.
+- `tests/import_test.py` gegen lokalen HTTP-Server und Dienstfixtures in
+  beiden Images grün: 13 Encodingfälle, komplette/aktive Downloads, Kandidaten
+  0/1/mehrere, explizite Auswahl, falsche Zuordnung, Sonarr und Radarr,
+  Fehler pro Item, Retry/Timeout, stale candidate, vollständige Pagination,
+  doppelte Downloadzeilen und gleichzeitig ausgelöste Importaufträge.
+- Bisherige `tests/smoke_test.py`: 46 bestandene Prüfungen auf HA 2026.9.2.
+- `python3 ../scripts/ui-regeln-pruefen.py --repo ha-arrstack-integrations`:
+  0 Verstöße. Quell-/Schema-Check, keine native Browserprüfung.
+
+| Regel | Status dieses Eingriffs | Konkreter Beleg / Grenze |
+| --- | --- | --- |
+| R01 | erfüllt für Backend | Cards/Actions benutzen `execute_import_action` und denselben ImportManager; Service-/WS-Antworttests. Native Labels nicht visuell geprüft. |
+| R02 | erfüllt für Backend | `import_selected` verarbeitet ausgewählte stabile IDs und liefert Einzelresultate; Duplicate-ID-Test. Keine eigene Auswahllistenoberfläche. |
+| R03 | ungeprüft für Host | Keine Keyboardimplementierung verändert; HA-Actionformular real prüfen. |
+| R04 | ungeprüft für Host | Keine eigenen modalen Dialoge; nativer HA-Host nicht per Scrim/Escape getestet. |
+| R05 | ungeprüft für Host | Keine eigene Navigation; Host-Back/Forward nicht getestet. |
+| R06 | ungeprüft für Host | Keine eigene Ansicht; Actionfelder mobil nicht im Browser getestet. |
+| R07 | nicht anwendbar | HA-Integration ohne eigene PWA; HA-Host bleibt zuständig. |
+| R08 | erfüllt für Backend | Ein Manager und eine Action-Ausführung für zwei Transporte und beide ARR-Dienste. |
+| R09 | teilweise | HA-Service-Schemas/Selektoren statt eigener Komponenten; statischer Regelprüfer grün, Hostdarstellung offen. |
+| R10 | teilweise | Stabile IDs, Schema-Fehlerprüfung, deutsche/englische Action-Label und Feldbeschreibungen; Host-Datenerhalt offen. |
+| R11 | erfüllt für Backend | Itemstatus `submitted/skipped/error`, keine Abschlussbehauptung bei angenommener Submission; Lock und Duplikat-/Paralleltests. |
+| R12 | erfüllt für Backend | Konkrete sichere Meldungen mit erneutem Prüfschritt; HTTP-Ablehnung retrybar, ungewisser Verbindungsabbruch ausdrücklich benannt; Fehlerfälle getestet. |
+| R13 | erfüllt für Backend | Kein erzwungener unsicherer Import; jede Schreibaktion frisch validiert, aktive/mehrdeutige/fehlzugeordnete Items gesperrt. Auswahl ist ausdrücklich und ersetzt keine Prüfung. |
+| R14 | erfüllt für Backend | Vollständige Queue-Pagination und per Item strukturierter Bulk-Status; Zweitseiten-Test. |
+| R15 | nicht anwendbar | Backend ohne Drag&Drop. |
+| R16 | ungeprüft für Host | Keine eigene Browseroberfläche; kein Screenreader/Zoom/Kontrastlauf. |
+| R17 | erfüllt für Datenvertrag | `not_applicable/ready/no_match/selection_required/error`, nullable count vor Prüfung, safe valid-Flags; Sicherheitsmatrix getestet. Darstellung im Kartenrepo. |
+| R18 | erfüllt für Datenvertrag | Keine Kandidatenwarnung für aktive/ungeprüfte Downloads; leere/error-Zustände explizit, keine Raw-JSON-Meldung in neuen Itemfehlern. |
+| R19 | nicht anwendbar | Keine Browserpermission eingeführt; bestehende Benutzerrechte werden real per HA-API geprüft. |
+| R20 | teilweise | Kandidatenabruf nur für explizit vollständige Importprobleme; Test 20/50/99 % ohne Kandidatenrequests. Keine Feldmessung/Web Vitals. |
+| R21 | nicht anwendbar | Backend speichert keine UI-Präferenzen. Flüchtige Reservierungen dienen Aktionssicherheit, nicht Navigation. |
+| R22 | teilweise | Fünf benannte Actions samt HA-Feldbeschreibungen registriert; Auffindbarkeit im nativen UI nicht visuell geprüft. |
+| R23 | nicht anwendbar | Backend enthält keine responsiven Komponenten; gemeinsamer fachlicher Vertrag durch R08 getestet. |
+| R24 | erfüllt | Begrenzung HA-Host versus API und fehlende echte Browserabnahme oben ausdrücklich dokumentiert; keine Ersatzbehauptung. |
+| R25 | teilweise | Fünf abgegrenzte Actions mit stabilen Feldern; keine Settings-Neugestaltung, native mobile Formhierarchie offen. |
+| R26 | erfüllt für neue Metadaten | Deutsche/englische Actions und Feldbeschreibungen, etablierte Sonarr/Radarr/Queue/Import-Begriffe erhalten. Hostrendering nicht geprüft. |
+
+Sicherheitsgrenze: Reservierungen sind flüchtig. Nach HA-Neustart zuerst den
+Dienststatus eines zuvor ungewissen Importauftrags prüfen. Die reine
+Lokalprüfung veröffentlicht/installiert nichts und verändert keine echten
+Mediendateien. Release-/Live-Abnahme erfolgt durch die übergeordnete Sitzung;
+Todos #181/#182 werden erst mit deren belegtem Abschluss erledigt.

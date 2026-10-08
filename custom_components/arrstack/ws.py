@@ -49,7 +49,6 @@ from .const import (
 )
 from .coordinator import (
     ArrstackRuntime,
-    classify_candidates,
     media_status_name,
     seerr_poster,
 )
@@ -149,6 +148,17 @@ _INSTANCE_KEYS = {
 @callback
 def async_register_websocket_api(hass: HomeAssistant) -> None:
     """Alle Kommandos anmelden. Wird genau einmal aufgerufen."""
+    from .services import IMPORT_ACTIONS, action_schema, execute_import_action
+
+    for action in IMPORT_ACTIONS:
+        async def handler(hass, connection, msg, action=action):
+            connection.send_result(msg["id"], await execute_import_action(hass, action, msg))
+        handler.__name__ = "ws_" + action
+        command = websocket_api.require_admin(websocket_api.websocket_command(
+            {vol.Required("type"): "arrstack/" + action, **action_schema(action)}
+        )(websocket_api.async_response(_handle(handler))))
+        websocket_api.async_register_command(hass, command)
+
     for command in (
         ws_instances,
         ws_queue,
@@ -307,38 +317,7 @@ async def ws_import_problems(
     )
 
 
-def _import_payload(
-    candidates: list[dict[str, Any]], is_sonarr: bool, download_id: str
-) -> list[dict[str, Any]]:
-    """Aus den Kandidaten die Nutzlast für `POST /manualimport` bauen.
-
-    Nur Felder, die die App selbst geliefert hat — nichts geraten. Fehlt die
-    Zuordnung (`series`/`movie`), wird der Kandidat übersprungen; ohne Ziel
-    hätte der Import keine Bedeutung.
-    """
-    payload: list[dict[str, Any]] = []
-    for candidate in candidates:
-        parent = candidate.get("series") if is_sonarr else candidate.get("movie")
-        if not parent:
-            continue
-        item: dict[str, Any] = {
-            "path": candidate.get("path"),
-            "folderName": candidate.get("folderName"),
-            "quality": candidate.get("quality"),
-            "languages": candidate.get("languages"),
-            "releaseGroup": candidate.get("releaseGroup"),
-            "downloadId": candidate.get("downloadId") or download_id,
-            "indexerFlags": candidate.get("indexerFlags", 0),
-        }
-        if is_sonarr:
-            item["seriesId"] = parent.get("id")
-            item["episodeIds"] = [
-                episode.get("id") for episode in candidate.get("episodes") or []
-            ]
-        else:
-            item["movieId"] = parent.get("id")
-        payload.append(item)
-    return payload
+from .imports import import_payload as _import_payload
 
 
 @websocket_api.require_admin
@@ -361,75 +340,31 @@ async def ws_manual_import(
 ) -> None:
     """Kandidaten eines Downloads holen — oder importieren.
 
-    Importiert wird **nur**, wenn `classify_candidates` grünes Licht gibt.
-    `force: true` übergeht das bewusst; die Karte setzt es nie von allein,
-    sondern erst nach einer zweiten Bestätigung des Nutzers.
+    Importiert wird nur nach frischer Queue-/Kandidatenprüfung.
+    Der historische Force-Schalter wird abgewiesen; alle Schreibwege nutzen
+    dieselbe frische Queue-/Kandidatenprüfung wie HA-Automationen.
     """
     runtime = _resolve(hass, msg, ARR_SERVICES)
-    client = runtime.client
-    download_id = msg["download_id"]
-    candidates = await client.manual_import_candidates(download_id)
-    verdict = classify_candidates(candidates)
-
+    records = [record for record in await runtime.imports.records()
+               if record.get("downloadId") == msg["download_id"]]
+    if len(records) != 1:
+        connection.send_error(msg["id"], "unsafe_import", "Download fehlt oder ist mehrdeutig. Queue-Eintrag gezielt auswählen.")
+        return
+    item_id = records[0]["id"]
     if msg["action"] == "candidates":
-        connection.send_result(
-            msg["id"],
-            {
-                "service": runtime.service,
-                "can_auto_import": verdict["can_auto_import"],
-                "reasons": verdict["reasons"],
-                "candidates": [
-                    {
-                        "path": candidate.get("path"),
-                        "name": candidate.get("name") or candidate.get("relativePath"),
-                        "size": candidate.get("size"),
-                        "quality": (candidate.get("quality") or {})
-                        .get("quality", {})
-                        .get("name"),
-                        "parent": (
-                            (candidate.get("series") or candidate.get("movie") or {})
-                        ).get("title"),
-                        "episodes": [
-                            f"S{int(episode.get('seasonNumber', 0)):02d}"
-                            f"E{int(episode.get('episodeNumber', 0)):02d}"
-                            for episode in candidate.get("episodes") or []
-                        ],
-                        "rejections": [
-                            rejection.get("reason")
-                            if isinstance(rejection, dict)
-                            else str(rejection)
-                            for rejection in candidate.get("rejections") or []
-                        ],
-                    }
-                    for candidate in candidates
-                ],
-            },
-        )
+        item = await runtime.imports.inspect(item_id)
+        item["reasons"] = [reason for candidate in item["candidates"] for reason in candidate["rejections"]]
+        connection.send_result(msg["id"], item)
         return
-
-    if not verdict["can_auto_import"] and not msg["force"]:
-        connection.send_error(
-            msg["id"],
-            "unsafe_import",
-            "Automatischer Import wäre riskant: "
-            + ("; ".join(verdict["reasons"]) or "keine Zuordnung gefunden"),
-        )
+    if msg["force"]:
+        connection.send_error(msg["id"], "unsafe_import", "Erzwungener Import ist nicht erlaubt. Einen validen Kandidaten ausdrücklich auswählen.")
         return
-
-    payload = _import_payload(candidates, client.is_sonarr, download_id)
-    if not payload:
-        connection.send_error(
-            msg["id"],
-            "unsafe_import",
-            "Keine zuordenbare Datei in diesem Download — nichts zu importieren.",
-        )
-        return
-
-    await client.manual_import(payload, msg["import_mode"])
+    result = await runtime.imports.import_item(item_id, import_mode=msg["import_mode"])
     await runtime.coordinator.async_request_refresh()
-    connection.send_result(
-        msg["id"], {"imported": len(payload), "import_mode": msg["import_mode"]}
-    )
+    if result["status"] != "submitted":
+        connection.send_error(msg["id"], "unsafe_import", result.get("last_error") or "Kein eindeutiger, fertiger Importkandidat. Erneut prüfen.")
+        return
+    connection.send_result(msg["id"], result)
 
 
 @websocket_api.require_admin
