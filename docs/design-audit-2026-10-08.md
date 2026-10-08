@@ -111,3 +111,46 @@ Dienststatus eines zuvor ungewissen Importauftrags prüfen. Die reine
 Lokalprüfung veröffentlicht/installiert nichts und verändert keine echten
 Mediendateien. Release-/Live-Abnahme erfolgt durch die übergeordnete Sitzung;
 Todos #181/#182 werden erst mit deren belegtem Abschluss erledigt.
+
+## Gezielte Nachprüfung — Importvertrag und Tabellenfelder 0.4.1
+
+Der Nutzerbefund eines erfolglosen Imports führte zu einer rein lesenden
+Diagnose. Der nachgewiesene Quellfehler ist die Verwendung des Reprocess-
+Endpunkts `POST /manualimport` anstelle eines `ManualImport`-Commands.
+Offizielle Quellen sind in README mit den tatsächlich laufenden Sonarr-
+und Radarr-Tags verlinkt. Historischer HTTP-Code bleibt unbekannt;
+Reservierungen nach einer vermeintlichen Übermittlung sind eine mögliche
+Folgewirkung, keine beobachtete historische HTTP-Antwort.
+
+Der zusätzliche HTTP-Vertragstest scheiterte vor dem Fix am falschen
+Endpunkt und besteht nachher für beide Dienste. Der Server im Test bildet
+Reprocessing und Command-Einreichung als getrennte Endpunkte ab; alle
+Testschreibzugriffe bleiben in diesem isolierten Server. Falsche Command-
+Antworten erzeugen auch über den echten ImportManager kein `submitted`.
+Optionalfeld-Tests prüfen API-Objektlisten, `0` versus unbekannt und ungültige
+Formen. Import-Sicherheitsregressionen und die unveränderten HA-Actions/WS-
+Verträge bleiben grün; vollständige Matrices je 35 Tests und 100 % Flow-
+Zeilen/Zweige. Coverage wurde nach einer Parallel-Dateikollision isoliert
+wiederholt und bestanden; der fehlerhafte Lauf zählt nicht als Abnahme.
+
+Alle 26 Regel-IDs erneut auf diesen Backend-Eingriff geprüft:
+
+| Regeln | Ergebnis / aktueller Beleg und Grenze |
+| --- | --- |
+| R01, R08 | erfüllt für Backend: Einzel/Bulk/WS/Actions verwenden denselben korrigierten API-Client; tatsächlicher HTTP-Vertrag Sonarr/Radarr geprüft. |
+| R02 | bisheriger Bulk-/Auswahlvertrag unverändert; bestehende Sicherheitsregression grün, keine neue eigene Auswahlliste. |
+| R03, R04, R05, R06, R16 | native HA-Hostprüfung weiterhin offen; dieser Backendfix enthält keine Browser-/Dialogimplementierung. |
+| R07, R15, R19, R21, R23 | weiterhin nicht anwendbar auf diese Backendänderung: keine eigene PWA, Drag&Drop, Browserpermission, Präferenzverwaltung oder responsive Komponente. |
+| R09, R10, R22, R25 | unverändert/teilweise: bestehende HA-Actions/Metadaten, volle Hostdarstellung nicht in diesem Backendteil geprüft. |
+| R11, R17 | für Datenvertrag erfüllt: angenommenes Command mit ID/name/state statt bloßem HTTP-Erfolg; invalid-response-Test über echten Client und Manager. |
+| R12, R18 | für Datenvertrag erfüllt: konkrete sichere Fehlermeldung, stabiler Code und kontrollierte Detailfelder; keine rohe private Dienstpayload. Fehler-/Retry-/Reservierungstests grün. |
+| R13 | Sicherheitsprüfung unverändert, keine produktiven Imports zur Abnahme. Reservierungen bleiben bei ungewisser Antwort erhalten; Neustart nach Update entfernt alte flüchtige Reprocess-Reservierungen. |
+| R14 | sieben zusätzliche optionale Tabellenfelder geprüft; Paging/Bulk unverändert. Fehlende Daten werden nicht erfunden. |
+| R20 | Requestzahl/Abfragetakt unverändert; keine zusätzliche Kandidatenprüfung für aktive Downloads, keine Feldmessung behauptet. |
+| R24 | klare Diagnose-/Test-/Live-Grenzen hier und README; keine vollständige Browsercompliance beansprucht. |
+| R26 | etablierte Namen/Quality/Formats erhalten; `last_error` mit verständlichem nächsten Schritt, neue Felder stimmen mit Kartenvertrag überein. |
+
+Release-Gate: 0.4.1 vorbereitet, noch nicht veröffentlicht/installiert.
+Rohdiagnose, reale Namen/Pfade und Adressen bleiben im privaten Verzeichnis
+außerhalb des Repositories. Die spätere Kartenabnahme gehört ins Kartenrepo;
+keine echte Medienänderung für einen Test erzwingen.

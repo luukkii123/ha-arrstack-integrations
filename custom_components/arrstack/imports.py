@@ -7,7 +7,7 @@ import hashlib
 import json
 from typing import Any
 
-from .api import ArrstackError, ArrstackConnectionError, ArrstackHTTPError, ArrstackAuthError
+from .api import ArrstackError, ArrstackConnectionError, ArrstackHTTPError, ArrstackAuthError, ArrstackCommandResponseError
 from .coordinator import is_import_problem, normalize_queue_record
 
 
@@ -20,6 +20,8 @@ def import_payload(candidates: list[dict[str, Any]], is_sonarr: bool, download_i
             continue
         item = {key: candidate.get(key) for key in ('path', 'folderName', 'quality', 'languages', 'releaseGroup')}
         item.update(downloadId=candidate.get('downloadId') or download_id, indexerFlags=candidate.get('indexerFlags', 0))
+        if candidate.get('releaseType') is not None:
+            item['releaseType'] = candidate['releaseType']
         if is_sonarr:
             episode_records = candidate.get('episodes') or []
             if not episode_records or any(not e.get('id') for e in episode_records):
@@ -72,6 +74,32 @@ def _candidate(candidate: dict[str, Any], record: dict[str, Any], is_sonarr: boo
     }
 
 
+def _error_fields(error: ArrstackError, *, writing: bool = False) -> dict[str, Any]:
+    """Explain failures without echoing service JSON, filenames or credentials."""
+    details: dict[str, Any] = {"phase": "submission" if writing else "inspection"}
+    if writing:
+        details["endpoint"] = "/api/v3/command"
+    if isinstance(error, ArrstackAuthError):
+        code = "auth_failed"
+        message = "API-Schlüssel abgelehnt. Verbindungseinstellungen prüfen und erneut anmelden."
+    elif writing and isinstance(error, ArrstackConnectionError):
+        code = "invalid_command_response" if isinstance(error, ArrstackCommandResponseError) else "uncertain_submission"
+        message = "Importauftrag nicht bestätigt. Der Ausgang ist ungewiss; Command-/Queue-Status im Dienst prüfen. Der Kandidat wird bis zum Entfernen aus der Queue nicht erneut importiert."
+        if isinstance(error.__cause__, ArrstackHTTPError):
+            details["http_status"] = error.__cause__.status
+    elif isinstance(error, ArrstackHTTPError):
+        code = "request_rejected"
+        details["http_status"] = error.status
+        message = f"Dienst hat die Anfrage abgelehnt (HTTP {error.status}). Einstellungen und Warteschlange prüfen, dann erneut versuchen."
+    elif isinstance(error, ArrstackConnectionError):
+        code = "connection_error"
+        message = "Dienst nicht erreichbar. Verbindung prüfen und Warteschlange erneut aktualisieren."
+    else:
+        code = "api_error"
+        message = "Warteschlange oder Importkandidaten konnten nicht geprüft werden. Im Dienst prüfen und erneut aktualisieren."
+    return {"last_error": message, "last_error_code": code, "last_error_details": details}
+
+
 class ImportManager:
     """Fresh inspection before each write, serialized per configured instance."""
 
@@ -103,7 +131,7 @@ class ImportManager:
         complete = str(record.get('status') or '').lower() == 'completed' and record.get('sizeleft') is not None and float(record['sizeleft']) == 0
         item.update(service=self.client.service, queue_item_id=record.get('id'), download_complete=complete,
                     import_state='not_applicable', candidate_count=None, candidates=[], last_error=None, last_checked=None,
-                    can_auto_import=False)
+                    can_auto_import=False, last_error_code=None, last_error_details=None)
         if not complete or not is_import_problem(record):
             return item, []
         item['last_checked'] = datetime.now(timezone.utc).isoformat()
@@ -125,8 +153,8 @@ class ImportManager:
                         import_state='ready' if count == 1 else 'selection_required' if count > 1 else 'no_match',
                         can_auto_import=count == 1)
             return item, raw
-        except ArrstackError:
-            item.update(import_state='error', last_error='Kandidaten konnten nicht geprüft werden. Erneut versuchen.')
+        except ArrstackError as err:
+            item.update(import_state='error', **_error_fields(err))
             return item, []
 
     async def refresh(self, queue_item_id: int | None = None) -> list[dict[str, Any]]:
@@ -143,6 +171,7 @@ class ImportManager:
 
     async def import_item(self, queue_item_id: int, candidate_id: str | None = None, import_mode: str = 'auto') -> dict[str, Any]:
         async with self._lock:
+            writing = False
             try:
                 records = [r for r in await self.records() if r.get('id') == queue_item_id]
                 if len(records) != 1:
@@ -157,13 +186,16 @@ class ImportManager:
                 candidate, source = chosen[0]
                 key = (record['downloadId'], candidate['candidate_id'])
                 if key in self._submitted:
-                    item['last_error'] = 'Import bereits übermittelt. Warteschlange aktualisieren.'
+                    item['last_error'] = 'Importauftrag bereits übermittelt oder Ausgang ungewiss. Command-/Queue-Status im Dienst prüfen.'
+                    item['last_error_code'] = 'already_submitted'
+                    item['last_error_details'] = {'endpoint': '/api/v3/command'}
                     return item
                 # Reserve before sending: a timeout may mean the service accepted
                 # the import even when the response did not reach us.
                 self._submitted.add(key)
+                writing = True
                 try:
-                    await self.client.manual_import(import_payload([source], self.client.is_sonarr, record['downloadId']), import_mode)
+                    command_result = await self.client.manual_import(import_payload([source], self.client.is_sonarr, record['downloadId']), import_mode)
                 except ArrstackConnectionError:
                     # Keep reservation: the result of the write is uncertain.
                     raise
@@ -177,12 +209,12 @@ class ImportManager:
                     raise ArrstackConnectionError("Importantwort ungewiss") from err
                 except ArrstackError as err:
                     raise ArrstackConnectionError("Importantwort nicht lesbar") from err
-                item.update(status='submitted', imported=1)
+                item.update(status='submitted', imported=1, command_id=command_result['id'])
                 return item
-            except ArrstackConnectionError:
-                return {'service': self.client.service, 'queue_item_id': queue_item_id, 'status': 'error', 'import_state': 'error', 'candidate_count': None, 'last_error': 'Verbindung unterbrochen. Importstatus ist ungewiss; Warteschlange im Dienst prüfen. Dieser Kandidat wird bis zum Entfernen aus der Queue nicht erneut importiert.'}
-            except ArrstackError:
-                return {'service': self.client.service, 'queue_item_id': queue_item_id, 'status': 'error', 'import_state': 'error', 'candidate_count': None, 'last_error': 'Import fehlgeschlagen. Warteschlange aktualisieren und erneut prüfen.'}
+            except ArrstackError as err:
+                return {'service': self.client.service, 'queue_item_id': queue_item_id,
+                        'status': 'error', 'import_state': 'error', 'candidate_count': None,
+                        **_error_fields(err, writing=writing)}
 
     async def import_selected(self, queue_item_ids: list[int]) -> list[dict[str, Any]]:
         return [await self.import_item(item_id) for item_id in dict.fromkeys(queue_item_ids)]

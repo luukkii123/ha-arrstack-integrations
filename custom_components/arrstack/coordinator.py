@@ -13,6 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import timedelta
 import logging
+import math
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -133,7 +134,8 @@ def _poster_url(item: dict[str, Any] | None) -> str | None:
 
 def _episode_label(record: dict[str, Any]) -> str | None:
     """`S02E05` aus einem Queue- oder History-Eintrag, wenn ableitbar."""
-    episode = record.get("episode") or {}
+    episode = record.get("episode")
+    episode = episode if isinstance(episode, dict) else {}
     if not episode:
         episodes = record.get("episodes") or []
         episode = episodes[0] if episodes else {}
@@ -142,6 +144,22 @@ def _episode_label(record: dict[str, Any]) -> str | None:
     if season is None or number is None:
         return None
     return f"S{int(season):02d}E{int(number):02d}"
+
+
+def _optional_names(value: Any) -> list[str] | None:
+    """API name lists stay nullable; malformed shapes never leak to cards."""
+    if not isinstance(value, list):
+        return None
+    names = []
+    for item in value:
+        name = item.get("name") if isinstance(item, dict) else item
+        if isinstance(name, str) and name.strip():
+            names.append(name)
+    return names
+
+
+def _optional_text(value: Any) -> str | None:
+    return value if isinstance(value, str) and value else None
 
 
 def normalize_queue_record(record: dict[str, Any], is_sonarr: bool) -> dict[str, Any]:
@@ -157,6 +175,12 @@ def normalize_queue_record(record: dict[str, Any], is_sonarr: bool) -> dict[str,
         progress = max(0.0, min(100.0, (size - sizeleft) / size * 100))
 
     parent = record.get("series") if is_sonarr else record.get("movie")
+    episode = record.get("episode")
+    episode = episode if isinstance(episode, dict) else {}
+    quality = record.get("quality")
+    quality = quality.get("quality") if isinstance(quality, dict) else None
+    quality_name = quality.get("name") if isinstance(quality, dict) else None
+    score = record.get("customFormatScore")
     messages: list[str] = []
     for entry in record.get("statusMessages") or []:
         title = str(entry.get("title") or "").strip()
@@ -173,6 +197,13 @@ def normalize_queue_record(record: dict[str, Any], is_sonarr: bool) -> dict[str,
         "title": record.get("title") or "",
         "parent_title": (parent or {}).get("title"),
         "episode": _episode_label(record) if is_sonarr else None,
+        "episode_title": _optional_text(episode.get("title")) if is_sonarr else None,
+        "episode_air_date": _optional_text(episode.get("airDate")) if is_sonarr else None,
+        "languages": _optional_names(record.get("languages")),
+        "quality": _optional_text(quality_name),
+        "custom_formats": _optional_names(record.get("customFormats")),
+        "custom_format_score": score if type(score) in (int, float) and math.isfinite(score) else None,
+        "output_path": _optional_text(record.get("outputPath")),
         "poster": _poster_url(parent),
         "size": size,
         "sizeleft": sizeleft,

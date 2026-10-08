@@ -205,6 +205,11 @@ def build_app() -> web.Application:
             SONARR_CANDIDATES_SAFE if download_id == "jkl" else SONARR_CANDIDATES_UNSAFE
         )
 
+    async def sonarr_command(request: web.Request) -> web.Response:
+        require_key(request)
+        seen["import_payload"] = await request.json()
+        return web.json_response({"id": 101, "name": "ManualImport", "status": "queued"})
+
     async def queue_delete(request: web.Request) -> web.Response:
         require_key(request)
         seen["delete_query"] = dict(request.query)
@@ -293,6 +298,7 @@ def build_app() -> web.Application:
             web.get("/api/v3/queue", sonarr_queue),
             web.get("/api/v3/manualimport", sonarr_manualimport),
             web.post("/api/v3/manualimport", sonarr_manualimport),
+            web.post("/api/v3/command", sonarr_command),
             web.delete("/api/v3/queue/{item_id}", queue_delete),
             web.get("/api/v3/movie", radarr_movies),
             web.get("/api/v3/diskspace", diskspace),
@@ -483,7 +489,7 @@ async def main() -> None:
         await sonarr.manual_import(payload, "auto")
         check(
             "importMode geht mit",
-            seen["import_payload"][0]["importMode"] == "auto",
+            seen["import_payload"]["importMode"] == "auto",
         )
 
         await sonarr.queue_delete(2, remove_from_client=True, blocklist=False)

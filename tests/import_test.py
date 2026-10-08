@@ -45,7 +45,7 @@ async def main():
             return copy.deepcopy(self.candidates)
         async def manual_import(self, payload, mode):
             self.writes.append(payload)
-            return []
+            return {'id':101,'name':'ManualImport','status':'queued'}
     client = Client()
     manager = ImportManager(client)
     for progress in [20, 50, 99]:
@@ -102,7 +102,11 @@ async def main():
         original = client.manual_import
         async def fail(payload, mode): raise error
         client.manual_import = fail
-        assert (await fresh.import_item(2))['status'] == 'error'
+        failed = await fresh.import_item(2)
+        assert failed['status'] == 'error'
+        assert failed['last_error_code'] in ('request_rejected','uncertain_submission')
+        assert isinstance(failed['last_error_details'], dict)
+        assert 'fixture' not in str(failed['last_error_details'])
         client.manual_import = original
         assert (await fresh.import_item(2))['status'] == ('submitted' if retry else 'skipped')
     # Radarr ownership and missing target are equally strict.

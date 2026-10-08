@@ -45,3 +45,6 @@ jobs:
 
       - name: Strict query encoding and import safety regression checks
         run: docker run --rm --network none -v "$PWD:/repo:ro" -w /repo integration-tests python tests/import_test.py
+
+      - name: Sonarr and Radarr ManualImport HTTP command contract
+        run: docker run --rm --network none -v "$PWD:/repo:ro" -w /repo integration-tests python tests/import_command_test.py

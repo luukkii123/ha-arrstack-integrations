@@ -50,6 +50,10 @@ class ArrstackConnectionError(ArrstackError):
     """Dienst nicht erreichbar — Netz, DNS, Zeitüberschreitung, TLS."""
 
 
+class ArrstackCommandResponseError(ArrstackConnectionError):
+    """A write response does not prove a ManualImport command was accepted."""
+
+
 def normalize_url(url: str) -> str:
     """Auf ein `schema://host:port[/unterordner]` ohne Schrägstrich am Ende.
 
@@ -293,9 +297,21 @@ class ArrClient(_BaseClient):
     async def manual_import(
         self, files: list[dict[str, Any]], import_mode: str = "auto"
     ) -> Any:
-        """Der moderne Weg (`POST /manualimport`), wie ihn die Web-UI geht."""
-        payload = [{**item, "importMode": import_mode} for item in files]
-        return await self._post("manualimport", payload)
+        """Submit a real command; POST /manualimport only reprocesses mappings.
+
+        A successful HTTP response alone is insufficient: it must identify the
+        accepted ManualImport command. Completion remains asynchronous.
+        """
+        result = await self.command("ManualImport", files=files, importMode=import_mode)
+        if (
+            not isinstance(result, dict)
+            or type(result.get("id")) is not int
+            or result["id"] <= 0
+            or result.get("name") != "ManualImport"
+            or result.get("status") not in (None, "queued", "started", "completed")
+        ):
+            raise ArrstackCommandResponseError("Keine gültige ManualImport-Command-Antwort erhalten.")
+        return result
 
     async def queue_delete(
         self,

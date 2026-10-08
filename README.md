@@ -316,3 +316,64 @@ Dies sind isolierte HA-/Diensttests, keine Veröffentlichung, Installation oder
 produktive Medienänderung. Die Live-Abnahme und Karten-Browserprüfung wird
 im gemeinsamen HACS-Abnahmebericht ergänzt; native HA-Formulare wurden hier
 nicht per Tastatur/Mobile/Screenreader geprüft.
+
+## Importkorrektur und Tabellenfelder — 0.4.1
+
+Die bisherige Importfunktion nutzte `POST /manualimport`. Das war ein
+Vertragsfehler: Sonarr und Radarr prüfen dort eine Zuordnung erneut, führen
+aber keinen Dateiimport aus. Ein HTTP-200 dieser Prüfung durfte daher nicht
+als angenommener Importauftrag behandelt werden. Einzel-, Auswahl-, Bulk-
+und historischer WS-Import benutzen jetzt `POST /api/v3/command` mit
+`name: ManualImport`, `files` und `importMode` auf Command-Ebene. Die API muss
+eine positive ganzzahlige Command-ID und `name: ManualImport` bestätigen;
+fehlgeschlagene, abgebrochene oder unpassende Antworten erzeugen kein
+`submitted`. Der akzeptierte Auftrag liefert zusätzlich `command_id`.
+Die Dateien übernehmen vorhandenen `releaseType` aus der API; Targets werden
+weiterhin ausschließlich frisch aus deren Kandidaten gelesen.
+
+Vertrag anhand der tatsächlich laufenden Versionen geprüft: Sonarr
+4.0.20.3014 und Radarr 6.4.4.10685. Öffentliche Originalquellen:
+[Sonarr Reprocess-Controller](https://github.com/Sonarr/Sonarr/blob/v4.0.20.3014/src/Sonarr.Api.V3/ManualImport/ManualImportController.cs),
+[Sonarr Import-Command](https://github.com/Sonarr/Sonarr/blob/v4.0.20.3014/src/NzbDrone.Core/MediaFiles/EpisodeImport/Manual/ManualImportCommand.cs),
+[Radarr Reprocess-Controller](https://github.com/Radarr/Radarr/blob/v6.4.4.10685/src/Radarr.Api.V3/ManualImport/ManualImportController.cs),
+[Radarr Import-Command](https://github.com/Radarr/Radarr/blob/v6.4.4.10685/src/NzbDrone.Core/MediaFiles/MovieImport/Manual/ManualImportCommand.cs).
+
+Neue optionale Queuefelder: `episode_title`, `episode_air_date`, `languages`
+(Namenliste), `quality` (Name), `custom_formats` (Namenliste),
+`custom_format_score` (Zahl) und `output_path`. Nicht gelieferte/ungültige
+Werte bleiben `null`; eine tatsächlich gelieferte Formatpunktzahl `0` bleibt
+`0`. Vorhandene `messages` enthalten bereits die fachlichen Queuegründe.
+Pfadwerte gehören ausschließlich in die private Laufzeitanzeige, niemals
+in öffentliche Abnahmeberichte oder Screenshots.
+
+Importfehler liefern `last_error` mit verständlichem nächsten Schritt,
+`last_error_code` und kontrollierte `last_error_details` (Phase, gegebenenfalls
+Endpoint/HTTP-Status). Die Details übernehmen keine Rohantwort, Dateinamen,
+Adressen oder Zugangsdaten des Dienstes. Unbestätigte Command-Antworten und
+ungewisse Übermittlungen behalten den vorhandenen Duplikatschutz. Der
+Neustart beziehungsweise ein neu aufgebauter Integrationslauf nach dem Update
+entfernt die flüchtigen Reservierungen aus 0.4.0, die durch den falschen
+Reprocess-Aufruf entstanden sein können. Bei real ungewissem Auftrag zuerst
+im Dienst prüfen; `submitted` bestätigt weiterhin keinen abgeschlossenen
+Dateiimport.
+
+### Geprüft — 08.10.2026, 0.4.1
+
+`tests/import_command_test.py` wurde vor der Korrektur gegen einen lokalen
+HTTP-Server rot: Er beobachtete `/manualimport` statt des vorgeschriebenen
+`/command`. Jetzt bestehen beide Dienstverträge samt echten Client-/Manager-
+Aufrufen, Command-Payload, akzeptierter ID, unpassenden Antworten und sieben
+optionalen Feldern einschließlich fehlender und strukturwidriger Werte.
+Die alten Smoke-Fixtures wurden von der falschen Importannahme auf den
+Command-Vertrag korrigiert. In beiden HA-Testimages sind HTTP-Vertrag und
+Sicherheitsregressionen grün. Die komplette HA-Suite besteht jeweils mit
+35 Tests und 100 % ConfigFlow-Zeilen-/Zweigabdeckung, die Smoke-Suite auf
+HA 2026.9.2 mit 46 Prüfungen. Ein paralleler Coverage-Lauf kollidierte zunächst
+auf derselben lokalen `.coverage`-Datei; der Wiederholungslauf mit isolierter
+Coverage-Datei bestand. Dies war ein Prüfwerkzeugfehler, kein bestandener
+Abnahmelauf.
+
+Die Live-Diagnose nutzte ausschließlich lesende Queue-/Kandidatenaufrufe.
+Der frühere genaue HTTP-Fehlercode ist nicht belegt. Kein produktiver Import
+wurde zum Test ausgelöst; Veröffentlichung, Installation und anschließende
+Live-Abnahme erfolgen getrennt durch die gemeinsame HACS-Sitzung.
