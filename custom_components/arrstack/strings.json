@@ -1,0 +1,312 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "arrstack",
+        "description": "Pick the service to add. Every service is independent — add only the ones you run.",
+        "menu_options": {
+          "sonarr": "Sonarr",
+          "radarr": "Radarr",
+          "sabnzbd": "SABnzbd",
+          "seerr": "Jellyseerr/Seerr"
+        }
+      },
+      "sonarr": {
+        "title": "Sonarr",
+        "description": "Address and API key of your Sonarr instance. The key is in Settings → General.",
+        "data": {
+          "url": "Address",
+          "api_key": "API key",
+          "verify_ssl": "Verify certificate",
+          "scan_interval": "Polling interval"
+        },
+        "data_description": {
+          "url": "Base address of the service with protocol, host and port; the suggestion in the field already carries the default port.",
+          "api_key": "The key from the service's own settings page; it is tried once before the entry is created.",
+          "verify_ssl": "Checks the TLS certificate on https addresses; switch it off only for a self-signed certificate, default on.",
+          "scan_interval": "Seconds between two queries to the service; default 60 seconds, allowed 15 to 3600."
+        }
+      },
+      "radarr": {
+        "title": "Radarr",
+        "description": "Address and API key of your Radarr instance. The key is in Settings → General.",
+        "data": {
+          "url": "Address",
+          "api_key": "API key",
+          "verify_ssl": "Verify certificate",
+          "scan_interval": "Polling interval"
+        },
+        "data_description": {
+          "url": "Base address of the service with protocol, host and port; the suggestion in the field already carries the default port.",
+          "api_key": "The key from the service's own settings page; it is tried once before the entry is created.",
+          "verify_ssl": "Checks the TLS certificate on https addresses; switch it off only for a self-signed certificate, default on.",
+          "scan_interval": "Seconds between two queries to the service; default 60 seconds, allowed 15 to 3600."
+        }
+      },
+      "sabnzbd": {
+        "title": "SABnzbd",
+        "description": "Address and API key of SABnzbd. The key is in Config → General → API Key.",
+        "data": {
+          "url": "Address",
+          "api_key": "API key",
+          "verify_ssl": "Verify certificate",
+          "scan_interval": "Polling interval"
+        },
+        "data_description": {
+          "url": "Base address of the service with protocol, host and port; the suggestion in the field already carries the default port.",
+          "api_key": "The key from the service's own settings page; it is tried once before the entry is created.",
+          "verify_ssl": "Checks the TLS certificate on https addresses; switch it off only for a self-signed certificate, default on.",
+          "scan_interval": "Seconds between two queries to the service; default 60 seconds, allowed 15 to 3600."
+        }
+      },
+      "seerr": {
+        "title": "Jellyseerr/Seerr",
+        "description": "Address and API key of Jellyseerr. The key is in Settings → General → API Key. Overseerr is not supported.",
+        "data": {
+          "url": "Address",
+          "api_key": "API key",
+          "verify_ssl": "Verify certificate",
+          "scan_interval": "Polling interval"
+        },
+        "data_description": {
+          "url": "Base address of the service with protocol, host and port; the suggestion in the field already carries the default port.",
+          "api_key": "The key from the service's own settings page; it is tried once before the entry is created.",
+          "verify_ssl": "Checks the TLS certificate on https addresses; switch it off only for a self-signed certificate, default on.",
+          "scan_interval": "Seconds between two queries to the service; default 60 seconds, allowed 15 to 3600."
+        }
+      },
+      "reauth_confirm": {
+        "title": "New API key",
+        "description": "{title} rejected the stored API key. Enter a new one.",
+        "data": {
+          "api_key": "API key"
+        },
+        "data_description": {
+          "api_key": "The new key from the service's own settings page; it is tried once before it replaces the stored one."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "The service could not be reached at that address.",
+      "invalid_auth": "The API key was rejected (401/403).",
+      "unexpected_response": "The answer did not look like this service — is the address right?"
+    },
+    "abort": {
+      "already_configured": "That address is already set up for this service.",
+      "reauth_successful": "The new API key works."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "arrstack",
+        "description": "Settings for {title}. Leave the API key blank to keep the current one.",
+        "data": {
+          "api_key": "New API key",
+          "verify_ssl": "Verify certificate",
+          "scan_interval": "Polling interval"
+        },
+        "data_description": {
+          "api_key": "Replaces the stored key from now on; leave the field empty to keep the current one.",
+          "verify_ssl": "Checks the TLS certificate on https addresses; switch it off only for a self-signed certificate, default on.",
+          "scan_interval": "Seconds between two queries to the service; default 60 seconds, allowed 15 to 3600."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "queue": {
+        "name": "Queue"
+      },
+      "downloading": {
+        "name": "Downloading"
+      },
+      "import_problems": {
+        "name": "Import problems"
+      },
+      "wanted": {
+        "name": "Wanted"
+      },
+      "diskspace_free": {
+        "name": "Free disk space"
+      },
+      "version": {
+        "name": "Version"
+      },
+      "series": {
+        "name": "Series"
+      },
+      "movies": {
+        "name": "Movies"
+      },
+      "speed": {
+        "name": "Speed"
+      },
+      "sizeleft": {
+        "name": "Remaining"
+      },
+      "queue_count": {
+        "name": "Queue"
+      },
+      "status": {
+        "name": "Status"
+      },
+      "requests_pending": {
+        "name": "Requests pending"
+      },
+      "requests_approved": {
+        "name": "Requests approved"
+      },
+      "requests_declined": {
+        "name": "Requests declined"
+      },
+      "requests_processing": {
+        "name": "Requests processing"
+      },
+      "requests_available": {
+        "name": "Requests available"
+      },
+      "requests_failed": {
+        "name": "Requests failed"
+      },
+      "requests_completed": {
+        "name": "Requests completed"
+      },
+      "requests_total": {
+        "name": "Requests total"
+      }
+    },
+    "binary_sensor": {
+      "import_problem": {
+        "name": "Import problem"
+      },
+      "health": {
+        "name": "Health"
+      },
+      "offline": {
+        "name": "Offline"
+      },
+      "warnings": {
+        "name": "Warnings"
+      },
+      "paused": {
+        "name": "Paused"
+      }
+    },
+    "button": {
+      "rescan": {
+        "name": "Rescan library"
+      },
+      "refresh_downloads": {
+        "name": "Refresh downloads"
+      },
+      "cleanup_queue": {
+        "name": "Clean up queue"
+      },
+      "pause": {
+        "name": "Pause"
+      },
+      "resume": {
+        "name": "Resume"
+      }
+    },
+    "number": {
+      "speedlimit": {
+        "name": "Speed limit"
+      }
+    }
+  },
+  "services": {
+    "refresh_import_queue": {
+      "name": "Refresh import queue",
+      "description": "Inspect fresh queue state and import only completed downloads with valid authoritative API candidates. Returns structured per-item results.",
+      "fields": {
+        "entry_id": {
+          "name": "Instance",
+          "description": "Config entry ID; required when more than one instance matches."
+        },
+        "service": {
+          "name": "Service",
+          "description": "Sonarr or Radarr; provide entry_id when multiple instances match."
+        },
+        "queue_item_id": {
+          "name": "Queue item",
+          "description": "Stable item ID from the queue."
+        }
+      }
+    },
+    "inspect_import": {
+      "name": "Inspect import candidates",
+      "description": "Inspect fresh queue state and import only completed downloads with valid authoritative API candidates. Returns structured per-item results.",
+      "fields": {
+        "entry_id": {
+          "name": "Instance",
+          "description": "Config entry ID; required when more than one instance matches."
+        },
+        "service": {
+          "name": "Service",
+          "description": "Sonarr or Radarr; provide entry_id when multiple instances match."
+        },
+        "queue_item_id": {
+          "name": "Queue item",
+          "description": "Stable item ID from the queue."
+        }
+      }
+    },
+    "import_item": {
+      "name": "Import item",
+      "description": "Inspect fresh queue state and import only completed downloads with valid authoritative API candidates. Returns structured per-item results.",
+      "fields": {
+        "entry_id": {
+          "name": "Instance",
+          "description": "Config entry ID; required when more than one instance matches."
+        },
+        "service": {
+          "name": "Service",
+          "description": "Sonarr or Radarr; provide entry_id when multiple instances match."
+        },
+        "queue_item_id": {
+          "name": "Queue item",
+          "description": "Stable item ID from the queue."
+        },
+        "candidate_id": {
+          "name": "Candidate",
+          "description": "Optional explicitly selected valid candidate ID from inspection; otherwise exactly one candidate is required."
+        }
+      }
+    },
+    "import_ready": {
+      "name": "Import ready items",
+      "description": "Inspect fresh queue state and import only completed downloads with valid authoritative API candidates. Returns structured per-item results.",
+      "fields": {
+        "entry_id": {
+          "name": "Instance",
+          "description": "Config entry ID; required when more than one instance matches."
+        },
+        "service": {
+          "name": "Service",
+          "description": "Sonarr or Radarr; provide entry_id when multiple instances match."
+        }
+      }
+    },
+    "import_selected": {
+      "name": "Import selected items",
+      "description": "Inspect fresh queue state and import only completed downloads with valid authoritative API candidates. Returns structured per-item results.",
+      "fields": {
+        "entry_id": {
+          "name": "Instance",
+          "description": "Config entry ID; required when more than one instance matches."
+        },
+        "service": {
+          "name": "Service",
+          "description": "Sonarr or Radarr; provide entry_id when multiple instances match."
+        },
+        "queue_item_ids": {
+          "name": "Queue items",
+          "description": "List of stable queue item IDs; duplicates are processed once."
+        }
+      }
+    }
+  }
+}

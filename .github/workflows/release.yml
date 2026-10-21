@@ -1,0 +1,41 @@
+name: Release
+
+# Ein Tag-Push genügt. Dieser Workflow legt das Release selbst an — vorher
+# musste es über die GitHub-API oder im Browser erzeugt werden, wofür es einen
+# persönlichen Token brauchte. Der `GITHUB_TOKEN` der Action reicht dafür aus.
+#
+# Anders als bei den Karten wird **kein Asset** angehängt: HACS lädt bei einer
+# Integration den Ordner `custom_components/<domain>/` aus dem Tag-Stand.
+on:
+  push:
+    tags:
+      - "v*"
+  # Nachträglich auslösbar, falls ein Tag schon existiert.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release anlegen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version gegen den Tag prüfen
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          manifest=$(python3 -c "import json;print(json.load(open('custom_components/arrstack/manifest.json'))['version'])")
+          echo "Tag: $tag — manifest.json: $manifest"
+          if [ "$tag" != "$manifest" ]; then
+            echo "::error::Die Version in manifest.json ($manifest) passt nicht zum Tag ($tag)."
+            exit 1
+          fi
+
+      - name: Release anlegen
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          generate_release_notes: true

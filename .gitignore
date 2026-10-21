@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.DS_Store
+Thumbs.db
+
+.coverage
+htmlcov/
+
+# Nur lokal sinnvoll: Agent-Einstiege, Design-Audit, Fachglossar.
+AGENTS.md
+CLAUDE.md
+docs/design-audit-*.md
+docs/design-glossar.md
